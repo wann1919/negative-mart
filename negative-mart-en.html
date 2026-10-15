@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Negative Mart – Present Simple Negative</title>
+<!--
+=====================================================================
+  🛒 NEGATIVE MART (English version)  –  Present Simple Negative review game
+  Grade 7 | One single file. Works on PC and mobile, no internet needed.
+
+  HOW TO EDIT THE QUESTIONS (for the teacher):
+    Scroll down to <script> → "1) CONFIG" and "2) LEVELS".
+    - Time per question  ->  CONFIG.seconds
+    - Add / edit / remove questions -> edit the "questions" array of each level.
+    - Every question has a "hint" (kids can press the 💡 Hint button) and a "why" (shown after answering).
+
+  LEADERBOARD: scores are saved in the browser of the device being used (localStorage).
+    Students on the same device/browser share one board. Use "Clear scores" on the board screen to reset.
+=====================================================================
+-->
+<style>
+:root{
+  --ink:#3a2f5b; --pink:#ff6b9d; --pinkd:#d9477c; --teal:#2ec4b6; --teald:#1f9a8f;
+  --orange:#ff9f1c; --oranged:#d97f00; --purple:#7b5cff; --purpled:#5a3fd6;
+  --red:#ff4d4d; --green:#3ecf7a; --greend:#25a25a; --yellow:#ffd23f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:"Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  color:var(--ink); overflow-x:hidden; user-select:none; -webkit-user-select:none;
+}
+
+/* ---------- 3D background (pure CSS 3D transforms) ---------- */
+.world{position:fixed;inset:0;perspective:900px;overflow:hidden;z-index:0;
+  background:linear-gradient(#ffe3a3 0%,#ffc4dd 55%,#cfe8ff 100%)}
+.shelf{position:absolute;top:8%;width:24vw;max-width:260px;height:64%;
+  background:linear-gradient(#fff,#ffeef6);border:6px solid #ff8fb8;border-radius:12px;
+  display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+  font-size:clamp(20px,3.6vw,38px);box-shadow:0 0 30px rgba(255,107,157,.35);opacity:.9}
+.shelf.left{left:1%;transform:rotateY(52deg);transform-origin:left center}
+.shelf.right{right:1%;transform:rotateY(-52deg);transform-origin:right center}
+.shelf div{letter-spacing:.2em;white-space:nowrap}
+.floor{position:absolute;left:-50%;width:200%;bottom:-6%;height:55%;transform:rotateX(68deg);transform-origin:bottom;
+  background:conic-gradient(#fff 25%,#ffd9e8 0 50%,#fff 0 75%,#ffd9e8 0) 0 0/90px 90px;opacity:.85}
+.floaters span{position:absolute;font-size:clamp(26px,5vw,48px);animation:drift 7s ease-in-out infinite;
+  transform-style:preserve-3d;filter:drop-shadow(0 10px 6px rgba(0,0,0,.18))}
+@keyframes drift{0%,100%{transform:translateY(0) rotateY(0)}50%{transform:translateY(-26px) rotateY(180deg)}}
+
+/* ---------- layout ---------- */
+#screen{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:10px 12px 28px;min-height:100dvh;
+  display:flex;flex-direction:column;justify-content:center}
+.vignette{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(255,40,40,.45) 100%)}
+.danger-on .vignette{opacity:1;animation:pulseV .5s infinite alternate}
+@keyframes pulseV{from{opacity:.35}to{opacity:1}}
+
+/* ---------- 3D buttons ---------- */
+.btn3d{--c:var(--teal);--cd:var(--teald);font:inherit;font-weight:800;font-size:clamp(16px,2.6vw,20px);color:#fff;
+  background:var(--c);border:0;border-radius:18px;padding:13px 24px;cursor:pointer;
+  box-shadow:0 7px 0 var(--cd),0 14px 20px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;
+  transform:translateY(0)}
+.btn3d:hover{transform:translateY(-2px);box-shadow:0 9px 0 var(--cd),0 16px 22px rgba(0,0,0,.22)}
+.btn3d:active{transform:translateY(6px);box-shadow:0 1px 0 var(--cd),0 4px 8px rgba(0,0,0,.2)}
+.btn3d.alt{--c:var(--purple);--cd:var(--purpled)}
+.btn3d.pink{--c:var(--pink);--cd:var(--pinkd)}
+.btn3d.orange{--c:var(--orange);--cd:var(--oranged)}
+.btn3d.yellow{--c:var(--yellow);--cd:#d9a900;color:#6b4a00}
+.btn3d:disabled{opacity:.55;cursor:not-allowed}
+.btn3d.big{font-size:clamp(20px,3.4vw,26px);padding:15px 38px}
+.btn3d.small{font-size:15px;padding:8px 14px;border-radius:14px;box-shadow:0 5px 0 var(--cd),0 10px 14px rgba(0,0,0,.2)}
+
+#musicBtn{position:fixed;top:10px;right:10px;z-index:20;width:48px;height:48px;border-radius:50%;padding:0;font-size:22px}
+
+/* ---------- cards / tablet ---------- */
+.card{background:#fff;border-radius:26px;padding:clamp(16px,3vw,28px);
+  box-shadow:0 10px 0 #e6d9ff,0 22px 40px rgba(60,30,120,.25);text-align:center}
+.title{font-size:clamp(28px,6vw,48px);font-weight:900;margin:0;
+  background:linear-gradient(90deg,var(--pink),var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin:6px 0 14px;font-weight:700;opacity:.8}
+
+/* character select */
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;perspective:700px;margin:12px 0}
+.char{background:linear-gradient(#fff,#f3ecff);border:4px solid #e0d4ff;border-radius:20px;padding:10px 4px;cursor:pointer;
+  transition:transform .25s;transform-style:preserve-3d;box-shadow:0 6px 0 #d6c8ff}
+.char:hover{transform:rotateY(14deg) translateZ(14px)}
+.char .em{font-size:clamp(40px,9vw,64px);display:block;transform:translateZ(30px)}
+.char b{font-size:clamp(12px,2.6vw,16px)}
+.char.sel{border-color:var(--pink);background:linear-gradient(#fff,#ffe3ee);transform:translateY(-6px) scale(1.05);box-shadow:0 10px 0 var(--pinkd)}
+.char.sel .em{animation:wiggle 1.2s infinite}
+@keyframes wiggle{0%,100%{transform:translateZ(30px) rotate(-8deg)}50%{transform:translateZ(30px) rotate(8deg)}}
+.name-in{font:inherit;font-weight:800;font-size:20px;text-align:center;width:min(100%,320px);padding:12px;border-radius:16px;
+  border:4px solid #e0d4ff;color:var(--ink);outline:none;user-select:text;-webkit-user-select:text}
+.name-in:focus{border-color:var(--purple)}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+.avatar3d{display:inline-block;font-size:clamp(54px,12vw,86px);transform-style:preserve-3d;animation:float3d 3.2s ease-in-out infinite;
+  filter:drop-shadow(0 16px 8px rgba(0,0,0,.2))}
+@keyframes float3d{0%,100%{transform:translateY(0) rotateY(-18deg)}50%{transform:translateY(-12px) rotateY(18deg)}}
+
+/* ---------- HUD ---------- */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.92);
+  border-radius:20px;padding:8px 14px;box-shadow:0 6px 0 #e6d9ff;margin:0 54px 10px 0;font-weight:800}
+.hud .who{display:flex;align-items:center;gap:6px;min-width:0}
+.hud .who .e{font-size:30px}
+.hud .who span.n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}
+.hud .mid{text-align:center;font-size:clamp(12px,2.6vw,16px);line-height:1.25}
+.dots{display:flex;gap:4px;justify-content:center;margin-top:3px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#e4dcf7;display:block}
+.dots i.done{background:var(--green)} .dots i.half{background:var(--orange)} .dots i.miss{background:#b9aee0} .dots i.now{background:var(--pink);transform:scale(1.35)}
+.coins{font-size:clamp(14px,3vw,18px);white-space:nowrap}
+
+/* timer + bomb */
+.timer{position:relative;height:34px;background:rgba(255,255,255,.9);border-radius:20px;margin:6px 6px 14px;box-shadow:inset 0 3px 6px rgba(0,0,0,.15)}
+.timer .fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:20px;background:linear-gradient(90deg,#3ecf7a,#ffd23f);transition:width .1s linear}
+#bomb{position:absolute;top:50%;left:100%;font-size:34px;transform:translate(-50%,-50%);z-index:2;line-height:1}
+#bomb:after{content:"✨";position:absolute;top:-14px;right:-8px;font-size:18px;animation:spark .3s infinite alternate}
+@keyframes spark{to{transform:scale(1.5) rotate(40deg);opacity:.5}}
+.timer .secs{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;z-index:3;font-size:16px}
+.danger .timer .fill{background:linear-gradient(90deg,#ff4d4d,#ff9f1c)}
+.danger #bomb{animation:bombshake .22s infinite}
+@keyframes bombshake{0%,100%{transform:translate(-50%,-50%) rotate(-14deg) scale(1.2)}50%{transform:translate(-50%,-50%) rotate(14deg) scale(1.35)}}
+.warn{display:none;text-align:center;font-weight:900;color:#d62828;font-size:clamp(14px,3vw,18px);margin:-8px 0 8px}
+.danger .warn{display:block;animation:pulseT .5s infinite alternate}
+@keyframes pulseT{to{transform:scale(1.08)}}
+#count{position:absolute;top:-18px;right:-10px;width:70px;height:70px;border-radius:50%;background:var(--red);color:#fff;
+  font-size:42px;font-weight:900;display:none;align-items:center;justify-content:center;z-index:4;
+  box-shadow:0 6px 0 #a61e1e,0 12px 18px rgba(0,0,0,.3);transform:translateZ(40px)}
+.danger #count{display:flex;animation:pop .5s infinite alternate}
+@keyframes pop{from{transform:scale(.9)}to{transform:scale(1.15)}}
+
+/* tablet */
+.tabwrap{position:relative;perspective:1200px}
+.tablet{background:#fff;border:10px solid #4a4e69;border-radius:30px;padding:clamp(14px,3vw,26px);
+  box-shadow:0 12px 0 #2b2d42,0 26px 44px rgba(0,0,0,.3);transform:rotateX(2deg);transform-origin:bottom;
+  min-height:260px;position:relative}
+.danger .tablet{animation:tabshake .35s infinite}
+@keyframes tabshake{0%,100%{transform:rotateX(2deg) translateX(0)}50%{transform:rotateX(2deg) translateX(-3px)}}
+.tag{display:inline-block;background:var(--orange);color:#fff;font-weight:900;border-radius:12px;padding:3px 12px;font-size:14px;
+  box-shadow:0 3px 0 var(--oranged)}
+.tools{position:absolute;top:8px;right:10px;display:flex;gap:8px}
+.prompt{font-size:clamp(22px,5vw,34px);font-weight:900;margin:22px 0 4px;line-height:1.35}
+.task{font-size:clamp(13px,2.8vw,16px);opacity:.75;font-weight:700;margin:2px 0 14px}
+.blank{display:inline-block;min-width:3.2em;border-bottom:5px dashed var(--purple);color:var(--purple);margin:0 4px}
+.hintbox{display:none;margin:6px auto 0;max-width:560px;background:#fff7cc;border:3px solid var(--yellow);border-radius:16px;
+  padding:8px 14px;font-weight:800;color:#6b4a00;font-size:clamp(14px,3vw,17px);animation:slideup .3s}
+.hintbox.show{display:block}
+
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:10px}
+.choice{font:inherit;font-weight:800;font-size:clamp(17px,3.6vw,24px);padding:16px 12px;border-radius:20px;border:0;cursor:pointer;
+  color:var(--ink);background:linear-gradient(#fff,#f1eaff);box-shadow:0 8px 0 #cdbdf7,0 16px 22px rgba(60,30,120,.2);
+  transform:perspective(500px) rotateX(6deg);transition:transform .12s,box-shadow .12s}
+.choice:hover{transform:perspective(500px) rotateX(0) translateY(-4px)}
+.choice:active{transform:perspective(500px) rotateX(0) translateY(6px);box-shadow:0 2px 0 #cdbdf7}
+.choice.wrong{background:#ffd9d9;box-shadow:0 8px 0 #f0a0a0;animation:shake .4s;opacity:.7}
+.choice.right{background:#c9f7dc;box-shadow:0 8px 0 var(--greend);animation:hop .5s}
+@keyframes hop{50%{transform:translateY(-12px) scale(1.04)}}
+
+.blank-input{font:inherit;font-weight:900;font-size:inherit;width:5.2em;text-align:center;border:0;border-bottom:5px solid var(--purple);
+  background:#f4efff;border-radius:10px 10px 0 0;color:var(--purple);outline:none;margin:0 6px;padding:2px 4px;user-select:text;-webkit-user-select:text}
+.blank-input.ok{background:#c9f7dc;color:var(--greend);border-color:var(--greend)}
+.blank-input.bad{background:#ffd9d9;animation:shake .4s}
+
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:3.6em;min-height:1.5em;padding:0 8px;margin:2px 4px;
+  border:4px dashed var(--purple);border-radius:14px;background:#f4efff;color:var(--purple);vertical-align:middle;cursor:pointer;
+  transition:transform .15s,background .15s}
+.slot.hot{background:#e0d3ff;transform:scale(1.12)}
+.slot.filled{border-style:solid;background:#fff;box-shadow:0 5px 0 #cdbdf7}
+.slot.ok{border-color:var(--greend);background:#c9f7dc;color:var(--greend);box-shadow:0 5px 0 var(--greend);cursor:default}
+.slot.bad{border-color:var(--red);background:#ffd9d9;animation:shake .4s}
+.bank{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:18px 0 8px;min-height:60px}
+.chip{font-weight:900;font-size:clamp(17px,3.6vw,24px);padding:10px 18px;border-radius:16px;background:linear-gradient(#ffe29a,#ffc24b);color:#7a4b00;
+  box-shadow:0 7px 0 #d99a1b,0 14px 18px rgba(0,0,0,.2);cursor:grab;touch-action:none;transform:perspective(400px) rotateX(8deg)}
+.chip.used{visibility:hidden}
+.chip.dragging{opacity:.35}
+.chip.ghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-60%) scale(1.15) rotate(-5deg);box-shadow:0 20px 24px rgba(0,0,0,.35)}
+
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.msg{min-height:24px;font-weight:800;color:var(--purpled);margin-top:8px}
+
+/* feedback */
+.fb{margin-top:16px;border-radius:20px;padding:14px;text-align:center;animation:slideup .35s}
+@keyframes slideup{from{transform:translateY(20px);opacity:0}}
+.fb.good{background:#d9f9e6;border:3px solid var(--green)}
+.fb.soft{background:#fff1d6;border:3px solid var(--orange)}
+.fb .ft{font-size:clamp(20px,4vw,26px);font-weight:900}
+.fb .ff{font-size:clamp(17px,3.4vw,22px);font-weight:800;margin:6px 0;color:var(--purpled)}
+.fb .fw{font-size:clamp(13px,2.8vw,16px);font-weight:700;opacity:.85;line-height:1.5}
+
+/* explosion */
+.boom{position:fixed;left:50%;top:40%;font-size:min(60vw,320px);transform:translate(-50%,-50%) scale(0);z-index:30;pointer-events:none;
+  animation:boom .9s ease-out forwards}
+@keyframes boom{30%{transform:translate(-50%,-50%) scale(1.1) rotate(8deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.6) rotate(-6deg);opacity:0}}
+
+/* intro / results */
+.rule{display:grid;gap:8px;text-align:left;background:#f4efff;border-radius:18px;padding:12px 16px;margin:12px 0;font-weight:700;font-size:clamp(14px,3vw,17px)}
+.rule b{color:var(--purpled)}
+.stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.stat{background:#f4efff;border-radius:16px;padding:8px 14px;font-weight:800}
+.stars{font-size:clamp(34px,8vw,56px);letter-spacing:6px}
+.review{text-align:left;margin-top:10px}
+.review div{background:#fff7e6;border-left:6px solid var(--orange);border-radius:12px;padding:8px 12px;margin:8px 0;font-weight:700;font-size:15px}
+.confetti{position:fixed;top:-40px;font-size:28px;z-index:25;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+
+/* leaderboard */
+.board{background:linear-gradient(#fffbe8,#fff1c9);border:4px solid var(--yellow);border-radius:22px;padding:12px 14px;margin:14px 0;text-align:left}
+.board h3{margin:0 0 6px;text-align:center;font-size:clamp(20px,4vw,26px)}
+.board ol{list-style:none;margin:0;padding:0}
+.board li{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:7px 12px;margin:6px 0;font-weight:800;
+  box-shadow:0 3px 0 #ecd98a;font-size:clamp(14px,3vw,18px)}
+.board li .rk{min-width:2.2em;text-align:center;font-size:1.2em}
+.board li .bn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board li .bs{white-space:nowrap}
+.board li.me{background:#e4f9ee;box-shadow:0 3px 0 var(--greend);outline:3px solid var(--green)}
+.board .empty{text-align:center;font-weight:700;opacity:.7;padding:10px}
+.board .note{text-align:center;font-size:13px;font-weight:700;opacity:.7;margin-top:8px}
+.yourrank{display:inline-block;background:var(--green);color:#fff;font-weight:900;border-radius:16px;padding:6px 18px;
+  font-size:clamp(16px,3.4vw,22px);box-shadow:0 4px 0 var(--greend)}
+
+@media (max-width:600px){
+  .shelf{width:16vw}
+  .hud .who span.n{max-width:18vw}
+  .choices{grid-template-columns:1fr}
+  #count{width:56px;height:56px;font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<!-- 3D background -->
+<div class="world" aria-hidden="true">
+  <div class="shelf left"><div>🥛🧃🥛</div><div>🍞🥐🍞</div><div>🍎🍌🍎</div><div>🍫🍪🍫</div></div>
+  <div class="shelf right"><div>🥜🍿🥜</div><div>🧀🥚🧀</div><div>🍓🍇🍓</div><div>🥤🧋🥤</div></div>
+  <div class="floor"></div>
+  <div class="floaters">
+    <span style="left:30%;top:12%;animation-delay:0s">🍎</span>
+    <span style="left:62%;top:8%;animation-delay:1.2s">🥛</span>
+    <span style="left:46%;top:20%;animation-delay:2.4s">🍪</span>
+    <span style="left:75%;top:26%;animation-delay:3.1s">🧃</span>
+    <span style="left:20%;top:30%;animation-delay:4.2s">🍞</span>
+  </div>
+</div>
+<div class="vignette"></div>
+<button class="btn3d pink" id="musicBtn" title="Music on/off">🎵</button>
+<div id="screen"></div>
+
+<script>
+/* =====================================================================
+   1) CONFIG – general settings
+   ===================================================================== */
+const CONFIG = {
+  seconds: 15,        // time per question (seconds)
+  warnAt: 5,          // start the bomb warning when this many seconds are left
+  pointsFirst: 10,    // points for a correct answer on the first try
+  pointsSecond: 5,    // points for a correct answer on the second try (a second chance!)
+  boardSize: 10,      // how many players to show on the leaderboard
+  storageKey: 'negativeMartScores_en'   // change this if you want a fresh board for another class
+};
+
+// Characters to choose from (you can add more, e.g. {id:'dog', emoji:'🐶', name:'Dog'})
+const CHARACTERS = [
+  { id:'panda',  emoji:'🐼', name:'Panda' },
+  { id:'rabbit', emoji:'🐰', name:'Rabbit' },
+  { id:'fox',    emoji:'🦊', name:'Fox' },
+  { id:'cat',    emoji:'🐱', name:'Cat' }
+];
+
+/* =====================================================================
+   2) LEVELS – all the questions (edit here!)
+   ---------------------------------------------------------------------
+   Level 1  type:'choice'  click the answer
+     { prompt:"Sentence / question (use ___ for a blank)",
+       task:"Small instruction line under the question",
+       choices:["choice 1","choice 2",...],
+       answer: 1,                 // index of the correct choice (starts at 0)
+       full:"The full correct sentence",   // optional if the prompt has ___ (it is filled in automatically)
+       say:"Text read aloud by the 🔊 button",   // optional
+       hint:"A clue shown when the student presses 💡 Hint",
+       why:"Short explanation shown after answering" }
+
+   Level 2  type:'type'    type a short answer
+     { s:"My brother ___ drink milk.",    // ___ = the blank (one blank only)
+       task:"Instruction",
+       answers:["doesn't","does not"],   // every accepted answer (capital letters don't matter)
+       hint:"...", why:"..." }
+
+   Level 3  type:'drag'    drag words into the blanks
+     { s:"He {0} {1} milk.",              // {0} {1} = blank number 0, 1 ...
+       task:"Instruction",
+       answers:["doesn't","like"],       // correct word for each blank, in order
+       bank:["doesn't","don't","like","likes"],   // all the words to drag (add tricky extras!)
+       hint:"...", why:"..." }
+   ===================================================================== */
+const LEVELS = [
+  /* ------------------------- LEVEL 1 ------------------------- */
+  {
+    type:'choice', icon:'📱', title:'Level 1: Order Challenge',
+    story:'A customer sent an order to your tablet! Read carefully and choose the correct answer.',
+    rule:[
+      "<b>I / You / We / They</b> ➜ don't + V.1 &nbsp;(They don't eat dairy.)",
+      "<b>He / She / It</b> ➜ doesn't + V.1 &nbsp;(He doesn't like sugar.)",
+      "<b>Verb to be:</b> I am not • He/She/It is not (isn't) • You/We/They are not (aren't)"
+    ],
+    questions:[
+      { prompt:"My customer is a girl. She ___ want chocolate.", task:"Choose the correct word for the blank.",
+        choices:["don't","doesn't","isn't"], answer:1,
+        hint:"She = he / she / it. Which one goes with she: don't or doesn't?",
+        why:"She is singular (he/she/it), so we use doesn't + V.1 (want)." },
+      { prompt:"They ___ eat dairy.", task:"Choose the correct word for the blank.",
+        choices:["don't","doesn't","aren't"], answer:0,
+        hint:"They goes with don't. Eat is an action verb, so we don't use aren't.",
+        why:"They uses don't + V.1 (eat). Aren't is only for Verb to be." },
+      { prompt:"He doesn't eat nuts!", task:"The customer says this. Which snack should you AVOID?",
+        choices:["This bar contains nuts.","This bar doesn't contain nuts."], answer:0,
+        full:"This bar contains nuts. (Don't pick it!)",
+        say:"He doesn't eat nuts! Which snack should you avoid?",
+        hint:"Doesn't eat nuts = he can't have nuts. Avoid the bar that CONTAINS nuts.",
+        why:"He doesn't eat nuts, so avoid the snack that contains nuts." },
+      { prompt:"Which label on the rice cake is correct?", task:"Which shelf label has correct grammar?",
+        choices:["It don't have nuts.","It doesn't have nuts.","It doesn't has nuts."], answer:1,
+        full:"It doesn't have nuts.",
+        hint:"Look at the subject: It. Then check the verb after doesn't — is it have or has?",
+        why:"It uses doesn't, and the verb goes back to the base form: have (not has)." },
+      { prompt:"These apples ___ fresh.", task:"Choose the correct word for the blank.",
+        choices:["isn't","aren't","don't"], answer:1,
+        hint:"These apples = they. After the blank comes an adjective (fresh), so use Verb to be.",
+        why:"These apples are plural, so use are not = aren't. Verb to be never uses don't." },
+      { prompt:"Which sentence is correct?", task:"Choose the correct negative sentence.",
+        choices:["He doesn't likes sugar.","He doesn't like sugar.","He don't like sugar."], answer:1,
+        full:"He doesn't like sugar.",
+        hint:"After doesn't, take the -s away from the verb. And He goes with doesn't!",
+        why:"After doesn't we use V.1 in its base form: like (cut the -s!)." },
+      { prompt:"I ___ a cashier. I am a customer!", task:"Choose the correct word for the blank.",
+        choices:["am not","isn't","aren't"], answer:0,
+        hint:"The subject is I. I has its very own Verb to be: am.",
+        why:"With I we use am not. We don't say amn't." }
+    ]
+  },
+
+  /* ------------------------- LEVEL 2 ------------------------- */
+  {
+    type:'type', icon:'🛒', title:'Level 2: Shelf Mission',
+    story:'You are at the shelves! Type the missing word on each product sign.',
+    rule:[
+      "The blank can be <b>don't / doesn't / isn't / aren't / am not</b> or a <b>base verb (V.1)</b>.",
+      "Check the subject first: He / She / It / one person ➜ <b>doesn't</b>",
+      "After don't / doesn't use the <b>base verb</b> (no -s / -es)."
+    ],
+    questions:[
+      { s:"My brother ___ drink milk.", task:"Type the correct negative word (the subject is singular).",
+        answers:["doesn't","does not"], hint:"My brother = He. Which negative word goes with He?",
+        why:"My brother = he, so we use doesn't + V.1 (drink)." },
+      { s:"We ___ buy candy on Monday.", task:"Type the correct negative word.",
+        answers:["don't","do not"], hint:"We is a plural subject. Think: I / you / we / they → ?",
+        why:"We uses don't + V.1 (buy)." },
+      { s:"The milk ___ cold.", task:"Type the negative Verb to be (milk = it).",
+        answers:["isn't","is not"], hint:"The milk = it. Its Verb to be is 'is'. Make it negative!",
+        why:"The milk = it, so we use is not = isn't (followed by the adjective cold)." },
+      { s:"The cookies ___ sweet.", task:"Type the negative Verb to be (cookies = they).",
+        answers:["aren't","are not"], hint:"The cookies = they. Its Verb to be is 'are'. Make it negative!",
+        why:"The cookies = they, so we use are not = aren't." },
+      { s:"My mom doesn't ___ (like) coffee.", task:"Type the base verb (V.1) of the word in brackets.",
+        answers:["like"], hint:"After doesn't, the verb has no -s. Just write the plain verb.",
+        why:"After doesn't we use the base verb → like (not likes)." },
+      { s:"I ___ hungry now.", task:"Type the negative Verb to be for I.",
+        answers:["am not"], hint:"I + am. Add not after it (two words!).",
+        why:"With I we use am not (never amn't)." },
+      { s:"The pandas don't ___ (eat) meat.", task:"Type the base verb (V.1) of the word in brackets.",
+        answers:["eat"], hint:"After don't, use the plain verb exactly as it is in the brackets.",
+        why:"After don't we use the base verb → eat." }
+    ]
+  },
+
+  /* ------------------------- LEVEL 3 ------------------------- */
+  {
+    type:'drag', icon:'💳', title:'Level 3: Checkout Fix',
+    story:'You reached the cashier! Drag (or tap) the words into the blanks to fix each sentence.',
+    rule:[
+      "<b>Don't / Doesn't + V.1</b> – the verb stays in its base form (no -s / -es).",
+      "<b>Doesn't</b> goes with He / She / It  •  <b>Don't</b> goes with I / You / We / They",
+      "Never double up: isn't <b>not</b> ❌ – one negative word is enough."
+    ],
+    questions:[
+      { s:"He {0} {1} milk.", task:"Drag a word into each of the 2 blanks.",
+        answers:["doesn't","like"], bank:["doesn't","don't","like","likes"],
+        hint:"He → doesn't. Then use the verb WITHOUT -s.",
+        why:"He doesn't like milk. After doesn't we use like, not likes." },
+      { s:"They {0} {1} soda.", task:"Drag a word into each of the 2 blanks.",
+        answers:["don't","want"], bank:["don't","doesn't","want","wants"],
+        hint:"They is plural → don't. Then the plain verb.",
+        why:"They don't want soda. They uses don't, not doesn't." },
+      { s:"This cake {0} fresh.", task:"Drag the correct Verb to be into the blank.",
+        answers:["isn't"], bank:["isn't","aren't","don't","not"],
+        hint:"This cake = it. Fresh is an adjective, so choose Verb to be.",
+        why:"This cake isn't fresh. No extra 'not' is needed (isn't not ❌)." },
+      { s:"She {0} {1} pizza.", task:"Drag a word into each of the 2 blanks.",
+        answers:["doesn't","eat"], bank:["doesn't","don't","eat","eats"],
+        hint:"She → doesn't. Then the verb with no -s.",
+        why:"She doesn't eat pizza. Eat has no -s after doesn't." },
+      { s:"We {0} happy.", task:"Drag the correct Verb to be into the blank.",
+        answers:["aren't"], bank:["aren't","isn't","don't","doesn't"],
+        hint:"We = plural. Happy is an adjective, so use Verb to be: are not.",
+        why:"We aren't happy. Happy is an adjective, so we use Verb to be, not don't." },
+      { s:"I {0} {1} nuts.", task:"Drag a word into each of the 2 blanks.",
+        answers:["don't","eat"], bank:["don't","doesn't","eat","eats"],
+        hint:"I goes with don't. Then the plain verb.",
+        why:"I don't eat nuts. I uses don't + V.1." },
+      { s:"It {0} {1} sugar.", task:"Drag a word into each of the 2 blanks.",
+        answers:["doesn't","have"], bank:["doesn't","don't","have","has"],
+        hint:"It → doesn't. The verb 'has' goes back to its base form!",
+        why:"It doesn't have sugar. After doesn't we use have, not has." }
+    ]
+  }
+];
+
+/* =====================================================================
+   3) SOUND (music + effects are made with WebAudio – no sound files needed)
+   ===================================================================== */
+const TRACKS = [ // one song per level: bpm, melody (16 steps), bass (16 steps)   numbers = semitones, null = rest
+  { bpm:112, wave:'triangle',
+    mel:[0,null,4,null,7,null,4,null,9,null,7,null,4,2,0,null],
+    bass:[0,null,0,null,-5,null,-5,null,-3,null,-3,null,-5,null,-5,null] },
+  { bpm:124, wave:'square',
+    mel:[7,null,9,7,4,null,2,4,7,null,9,null,12,null,9,7],
+    bass:[0,null,7,null,0,null,7,null,-3,null,4,null,-5,null,2,null] },
+  { bpm:134, wave:'triangle',
+    mel:[12,null,9,12,14,null,12,9,7,null,9,null,12,9,7,null],
+    bass:[0,null,4,null,5,null,7,null,0,null,4,null,7,null,5,null] }
+];
+const Sound = (() => {
+  let ctx, master, noiseBuf, timer = null, step = 0, nextT = 0, track = null, current = -1;
+  let musicOn = true;
+  const f = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function init() {                       // create the AudioContext (must happen after a click/tap)
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return true;
+  }
+  function tone(freq, t, dur, type = 'square', vol = 0.07, slideTo) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function noise(t, dur, vol, hp = 6000, lp) {
+    const s = ctx.createBufferSource(), g = ctx.createGain(), fl = ctx.createBiquadFilter();
+    s.buffer = noiseBuf; fl.type = lp ? 'lowpass' : 'highpass'; fl.frequency.value = lp || hp;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
+  }
+  function scheduler() {                  // schedule notes slightly ahead of time
+    while (nextT < ctx.currentTime + 0.2) {
+      const m = track.mel[step], b = track.bass[step];
+      if (m !== null) tone(f(60 + m), nextT, 0.22, track.wave, 0.04);
+      if (b !== null) tone(f(48 + b), nextT, 0.28, 'triangle', 0.08);
+      if (step % 2 === 0) noise(nextT, 0.04, 0.04);
+      nextT += 60 / track.bpm / 4; step = (step + 1) % 16;
+    }
+  }
+  function play(n) {
+    current = n; if (!musicOn || !init()) return;
+    stop(); track = TRACKS[n % TRACKS.length]; step = 0; nextT = ctx.currentTime + 0.05;
+    timer = setInterval(scheduler, 50);
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function toggle() {
+    musicOn = !musicOn;
+    if (musicOn) { if (current >= 0) play(current); } else stop();
+    return musicOn;
+  }
+  // Sound effects. The correct / wrong sounds are louder than the music so kids always hear them.
+  const sfx = {
+    ding(){ if(!init())return; const t=ctx.currentTime;                       // ✅ happy "ta-da-da-DING!"
+            [523,659,784,1047].forEach((n,i)=>tone(n,t+i*.08,.28,'triangle',.22));
+            tone(1568,t+.34,.45,'sine',.18); },
+    oops(){ if(!init())return; const t=ctx.currentTime;                       // ❌ soft "wom-womp" (not scary)
+            tone(392,t,.22,'sine',.25,330); tone(311,t+.22,.4,'sine',.25,220); },
+    tick(){ if(!init())return; tone(1100,ctx.currentTime,.07,'square',.09); },
+    boom(){ if(!init())return; const t=ctx.currentTime; noise(t,.7,.5,0,500); tone(120,t,.6,'sine',.35,40); },
+    win(){ if(!init())return; const t=ctx.currentTime; [523,659,784,1047,784,1047,1319].forEach((n,i)=>tone(n,t+i*.12,.25,'triangle',.14)); }
+  };
+  return { play, stop, toggle, sfx, init };
+})();
+
+/* Read a sentence aloud (the browser's Text-to-Speech) */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
+  speechSynthesis.speak(u);
+}
+
+/* =====================================================================
+   4) STATE + helpers
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const screen = $('#screen');
+const S = { name:'', char:CHARACTERS[0], level:0, q:0, coins:0, attempts:0, locked:true,
+            stats:[], missed:[], marks:[], tid:null, deadline:0, lastSec:null, reveal:null };
+
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+// the full correct sentence (shown after answering)
+function fullOf(L, q) {
+  if (L.type === 'choice') return q.full || q.prompt.replace('___', q.choices[q.answer]);
+  if (L.type === 'type')   return q.s.replace('___', q.answers[0]);
+  return q.s.replace(/\{(\d)\}/g, (m, i) => q.answers[i]);
+}
+// text read by the 🔊 button while answering
+function sayOf(L, q) {
+  if (L.type === 'choice') return q.say || q.prompt.replace('___', 'blank');
+  if (L.type === 'type')   return q.s.replace('___', 'blank');
+  return q.s.replace(/\{\d\}/g, 'blank');
+}
+const norm = t => t.toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const totalQ = () => LEVELS.reduce((n, L) => n + L.questions.length, 0);
+
+/* =====================================================================
+   5) LEADERBOARD (saved on this device with localStorage)
+   ===================================================================== */
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(CONFIG.storageKey)) || []; } catch (e) { return []; }
+}
+function saveScores(list) {
+  try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(list)); } catch (e) {}
+}
+const sortScores = list => list.slice().sort((a, b) => b.coins - a.coins || a.id - b.id);
+
+// save the finished game, return { id, rank, total }
+function recordScore() {
+  const entry = { id: Date.now(), name: S.name, emoji: S.char.emoji, coins: S.coins };
+  const list = loadScores(); list.push(entry); saveScores(list);
+  const sorted = sortScores(list);
+  return { id: entry.id, rank: sorted.findIndex(e => e.id === entry.id) + 1, total: sorted.length };
+}
+// HTML of the leaderboard card. highlightId = the entry to highlight as "you"
+function boardHTML(highlightId) {
+  const sorted = sortScores(loadScores()), medals = ['🥇', '🥈', '🥉'];
+  const row = (e, i) => `<li class="${e.id === highlightId ? 'me' : ''}"><span class="rk">${medals[i] || (i + 1)}</span>
+      <span class="bn">${e.emoji} ${esc(e.name)}${e.id === highlightId ? ' (you!)' : ''}</span><span class="bs">⭐ ${e.coins}</span></li>`;
+  let rows = sorted.slice(0, CONFIG.boardSize).map(row).join('');
+  const myIdx = sorted.findIndex(e => e.id === highlightId);
+  if (myIdx >= CONFIG.boardSize) rows += `<li style="justify-content:center;box-shadow:none;background:none">⋮</li>` + row(sorted[myIdx], myIdx);
+  return `<div class="board"><h3>🏆 Hall of Fame</h3>
+    ${sorted.length ? `<ol>${rows}</ol>` : '<div class="empty">No scores yet – be the first star! ⭐</div>'}
+    <div class="note">Scores are saved on this device. Everyone is a star – try to beat your own score! 💪</div></div>`;
+}
+
+/* =====================================================================
+   6) SCREEN: start (choose a character + name)
+   ===================================================================== */
+function showStart() {
+  stopTimer(); document.body.classList.remove('danger-on');
+  screen.innerHTML = `
+    <div class="card">
+      <div class="avatar3d" id="heroAv">${S.char.emoji}</div>
+      <h1 class="title">🛒 Negative Mart</h1>
+      <p class="sub">Help the customers shop with negative sentences (Present Simple Negative)!</p>
+      <b>1) Choose your character</b>
+      <div class="chars" id="chars">
+        ${CHARACTERS.map(c => `<div class="char ${c.id === S.char.id ? 'sel' : ''}" data-id="${c.id}"><span class="em">${c.emoji}</span><b>${c.name}</b></div>`).join('')}
+      </div>
+      <b>2) Type your name</b><br><br>
+      <input class="name-in" id="nameIn" maxlength="12" placeholder="Your nickname..." autocomplete="off">
+      <p class="sub" style="margin-top:14px">🎵 Music • 🔊 Listen to the sentences • 💡 Hints • 💣 ${CONFIG.seconds} seconds per question (don't worry, you can try again!)</p>
+      <div class="actions">
+        <button class="btn3d big orange" id="goBtn">Start game ▶</button>
+        <button class="btn3d big alt" id="boardBtn">🏆 Leaderboard</button>
+      </div>
+    </div>`;
+  $('#nameIn').value = S.name;
+  $('#chars').onclick = e => {
+    const c = e.target.closest('.char'); if (!c) return;
+    S.char = CHARACTERS.find(x => x.id === c.dataset.id);
+    document.querySelectorAll('.char').forEach(x => x.classList.toggle('sel', x === c));
+    $('#heroAv').textContent = S.char.emoji;
+  };
+  $('#goBtn').onclick = () => {
+    const v = $('#nameIn').value.trim();
+    if (!v) { const i = $('#nameIn'); i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake'); i.focus(); return; }
+    S.name = v; Sound.init();
+    S.level = 0; S.coins = 0; S.stats = []; S.missed = [];
+    showIntro();
+  };
+  $('#boardBtn').onclick = () => { S.name = $('#nameIn').value.trim(); showBoard(); };
+}
+
+/* SCREEN: leaderboard only */
+function showBoard() {
+  screen.innerHTML = `<div class="card">
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">🏆 Leaderboard</h2>
+      ${boardHTML(null)}
+      <div class="actions">
+        <button class="btn3d" id="backBtn">⬅ Back</button>
+        <button class="btn3d small pink" id="clearBtn">Clear scores (teacher)</button>
+      </div></div>`;
+  $('#backBtn').onclick = showStart;
+  $('#clearBtn').onclick = () => { if (confirm('Delete ALL saved scores on this device?')) { saveScores([]); showBoard(); } };
+}
+
+/* =====================================================================
+   7) SCREEN: level intro
+   ===================================================================== */
+function showIntro() {
+  const L = LEVELS[S.level];
+  Sound.play(S.level);
+  screen.innerHTML = `
+    <div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">${L.icon} ${L.title}</h2>
+      <p class="sub" id="introName"></p>
+      <p class="sub">${L.story}</p>
+      <div class="rule">${L.rule.map(r => `<div>✨ ${r}</div>`).join('')}</div>
+      <p class="sub">${L.questions.length} questions • ${CONFIG.seconds} seconds each • press 💡 Hint if you need help • you get a 2nd try 😊</p>
+      <button class="btn3d big" id="playBtn">I'm ready! Let's go 🚀</button>
+    </div>`;
+  $('#introName').textContent = `${S.char.emoji} ${S.name}`;
+  S.stats[S.level] = { first:0, second:0, miss:0 };
+  S.marks = [];
+  $('#playBtn').onclick = () => { S.q = 0; buildGame(); startQuestion(); };
+}
+
+/* =====================================================================
+   8) Game layout + HUD
+   ===================================================================== */
+function buildGame() {
+  screen.innerHTML = `
+    <div id="game">
+      <div class="hud">
+        <div class="who"><span class="e">${S.char.emoji}</span><span class="n" id="hudName"></span></div>
+        <div class="mid"><div id="hudLevel"></div><div class="dots" id="dots"></div></div>
+        <div class="coins">⭐ <span id="coins">0</span></div>
+      </div>
+      <div class="warn">⚠️ The bomb is about to go off! Answer now!</div>
+      <div class="timer"><span class="secs" id="secs"></span><div class="fill" id="fill"></div><div id="bomb">💣</div></div>
+      <div class="tabwrap"><div id="count"></div><div class="tablet" id="tablet"></div></div>
+    </div>`;
+  $('#hudName').textContent = S.name;
+}
+function updateHud() {
+  const L = LEVELS[S.level];
+  $('#hudLevel').textContent = `${L.icon} Level ${S.level + 1} • Q ${S.q + 1}/${L.questions.length}`;
+  $('#coins').textContent = S.coins;
+  $('#dots').innerHTML = L.questions.map((_, i) =>
+    `<i class="${i === S.q ? 'now' : (S.marks[i] || '')}"></i>`).join('');
+}
+
+/* =====================================================================
+   9) Timer + bomb
+   ===================================================================== */
+function startTimer() {
+  stopTimer();
+  S.deadline = Date.now() + CONFIG.seconds * 1000; S.lastSec = null;
+  S.tid = setInterval(tick, 100); tick();
+}
+function stopTimer() { if (S.tid) { clearInterval(S.tid); S.tid = null; } }
+function tick() {
+  const total = CONFIG.seconds * 1000;
+  const left = Math.max(0, S.deadline - Date.now());
+  const pct = left / total * 100;
+  const fill = $('#fill'), bomb = $('#bomb'); if (!fill) return;
+  fill.style.width = pct + '%'; bomb.style.left = pct + '%';
+  const sec = Math.ceil(left / 1000);
+  if (sec !== S.lastSec) {
+    S.lastSec = sec; $('#secs').textContent = '⏱ ' + sec;
+    if (sec <= CONFIG.warnAt && sec > 0) {         // warning in the last seconds
+      $('#game').classList.add('danger'); document.body.classList.add('danger-on');
+      $('#count').textContent = sec; Sound.sfx.tick();
+    }
+  }
+  if (left <= 0) timeUp();
+}
+function timeUp() {                                  // 💥 time's up: a cartoon boom, then a gentle answer reveal
+  if (S.locked) return;
+  stopTimer(); Sound.sfx.boom();
+  const b = document.createElement('div'); b.className = 'boom'; b.textContent = '💥'; document.body.appendChild(b);
+  setTimeout(() => b.remove(), 950);
+  if (S.reveal) S.reveal();
+  finishQuestion('timeout');
+}
+function clearDanger() { const g = $('#game'); if (g) g.classList.remove('danger'); document.body.classList.remove('danger-on'); }
+
+/* =====================================================================
+   10) Start a question + renderers for each question type
+   ===================================================================== */
+function startQuestion() {
+  const L = LEVELS[S.level], q = L.questions[S.q];
+  S.attempts = 0; S.locked = false; S.reveal = null; clearDanger(); updateHud();
+  const tab = $('#tablet');
+  tab.innerHTML = `<span class="tag">${L.icon} Order #${S.q + 1}</span>
+    <div class="tools">
+      <button class="btn3d yellow small" id="hintBtn">💡 Hint</button>
+      ${'speechSynthesis' in window ? '<button class="btn3d alt small" id="spk">🔊 Listen</button>' : ''}
+    </div>
+    <div id="qbody"></div>
+    <div class="hintbox" id="hintBox"></div>
+    <div class="msg" id="msg"></div><div id="fbBox"></div>`;
+  $('#hintBtn').onclick = () => { const h = $('#hintBox'); h.textContent = '💡 ' + (q.hint || 'Look at the subject first!'); h.classList.add('show'); };
+  const spk = $('#spk'); if (spk) spk.onclick = () => speak(sayOf(L, q));
+  ({ choice: renderChoice, type: renderType, drag: renderDrag })[L.type](q, L);
+  startTimer();
+}
+function showHint(q) {                              // shown automatically after a wrong answer
+  const h = $('#hintBox'); h.textContent = '💡 ' + (q.hint || 'Look at the subject first!'); h.classList.add('show');
+}
+
+/* ---- Level 1: click the answer ---- */
+function renderChoice(q) {
+  const html = q.prompt.replace('___', '<span class="blank">&nbsp;</span>');
+  $('#qbody').innerHTML = `<p class="prompt">${html}</p><p class="task">${q.task || ''}</p>
+    <div class="choices">${q.choices.map((c, i) => `<button class="choice" data-i="${i}">${c}</button>`).join('')}</div>`;
+  S.reveal = () => document.querySelectorAll('.choice')[q.answer].classList.add('right');
+  $('#qbody').onclick = e => {
+    const btn = e.target.closest('.choice'); if (!btn || S.locked || btn.classList.contains('wrong')) return;
+    if (+btn.dataset.i === q.answer) {
+      btn.classList.add('right');
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+    } else {
+      btn.classList.add('wrong'); Sound.sfx.oops(); S.attempts++;
+      if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); }
+      else { $('#msg').textContent = '🙂 Almost! Try again.'; showHint(q); }
+    }
+  };
+}
+
+/* ---- Level 2: type a short answer ---- */
+function renderType(q) {
+  const [a, b] = q.s.split('___');
+  $('#qbody').innerHTML = `<p class="prompt">${a}<input class="blank-input" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="14">${b}</p>
+    <p class="task">${q.task || ''}</p>
+    <div class="actions"><button class="btn3d" id="chk">Check ✔</button></div>`;
+  const inp = $('#ans'); setTimeout(() => inp.focus({ preventScroll: true }), 50);
+  S.reveal = () => { inp.value = q.answers[0]; inp.classList.add('ok'); inp.disabled = true; };
+  const check = () => {
+    if (S.locked) return;
+    const v = norm(inp.value); if (!v) { $('#msg').textContent = '✏️ Type your answer first.'; return; }
+    if (q.answers.map(norm).includes(v)) {
+      inp.classList.add('ok'); inp.disabled = true;
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+    } else {
+      Sound.sfx.oops(); S.attempts++;
+      inp.classList.remove('bad'); void inp.offsetWidth; inp.classList.add('bad');
+      if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); }
+      else { $('#msg').textContent = '🙂 Almost! Try again.'; showHint(q); inp.select(); }
+    }
+  };
+  $('#chk').onclick = check;
+  inp.onkeydown = e => { if (e.key === 'Enter') check(); };
+}
+
+/* ---- Level 3: drag words into blanks (mouse + touch; tapping a word fills the next empty blank) ---- */
+function renderDrag(q) {
+  const placed = q.answers.map(() => null);      // placed[blank] = index of the chip in q.bank
+  const locked = q.answers.map(() => false);     // blanks that are already correct (locked)
+  const sentence = q.s.replace(/\{(\d)\}/g, (m, i) => `<span class="slot" data-i="${i}">&nbsp;</span>`);
+  $('#qbody').innerHTML = `<p class="prompt">${sentence}</p><p class="task">${q.task || ''}</p>
+    <div class="bank" id="bank">${q.bank.map((w, i) => `<div class="chip" data-b="${i}">${w}</div>`).join('')}</div>
+    <div class="actions"><button class="btn3d" id="chk">Check ✔</button></div>`;
+  const slots = [...document.querySelectorAll('.slot')], chips = [...document.querySelectorAll('.chip')];
+
+  function refresh() {
+    slots.forEach((s, i) => {
+      const b = placed[i];
+      s.innerHTML = b === null ? '&nbsp;' : q.bank[b];
+      s.classList.toggle('filled', b !== null);
+    });
+    chips.forEach((c, i) => c.classList.toggle('used', placed.includes(i)));
+  }
+  function put(slotIdx, b) {
+    if (locked[slotIdx] || S.locked) return;
+    placed[slotIdx] = b; refresh();
+  }
+  function putFirstEmpty(b) {
+    const i = placed.findIndex((p, k) => p === null && !locked[k]); if (i >= 0) put(i, b);
+  }
+  S.reveal = () => {                                // fill in the correct words
+    q.answers.forEach((a, i) => { placed[i] = q.bank.findIndex((w, k) => w === a && !placed.some((p, j) => p === k && j !== i)); locked[i] = true; });
+    refresh(); slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
+  };
+  slots.forEach((s, i) => s.onclick = () => { if (!locked[i] && !S.locked && placed[i] !== null) { placed[i] = null; refresh(); } });
+
+  chips.forEach(ch => {
+    ch.addEventListener('pointerdown', e => {
+      if (S.locked || ch.classList.contains('used')) return;
+      e.preventDefault(); ch.setPointerCapture(e.pointerId);
+      const b = +ch.dataset.b, sx = e.clientX, sy = e.clientY; let ghost = null, moved = false;
+      const move = ev => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+          moved = true; ghost = ch.cloneNode(true); ghost.classList.add('ghost'); document.body.appendChild(ghost); ch.classList.add('dragging');
+        }
+        if (ghost) {
+          ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px';
+          const el = document.elementFromPoint(ev.clientX, ev.clientY), hot = el && el.closest('.slot');
+          slots.forEach(s => s.classList.toggle('hot', s === hot));
+        }
+      };
+      const up = ev => {
+        ch.removeEventListener('pointermove', move); ch.removeEventListener('pointerup', up); ch.removeEventListener('pointercancel', up);
+        if (ghost) ghost.remove(); ch.classList.remove('dragging'); slots.forEach(s => s.classList.remove('hot'));
+        if (!moved) putFirstEmpty(b);                            // a simple tap = fill the first empty blank
+        else {
+          const el = document.elementFromPoint(ev.clientX, ev.clientY), s = el && el.closest('.slot');
+          if (s) put(+s.dataset.i, b);
+        }
+      };
+      ch.addEventListener('pointermove', move); ch.addEventListener('pointerup', up); ch.addEventListener('pointercancel', up);
+    });
+  });
+
+  $('#chk').onclick = () => {
+    if (S.locked) return;
+    if (placed.some(p => p === null)) { $('#msg').textContent = '🧩 Fill in every blank first.'; return; }
+    const wrong = q.answers.map((a, i) => q.bank[placed[i]] !== a);
+    if (!wrong.some(Boolean)) {
+      slots.forEach(s => s.classList.add('ok'));
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+      return;
+    }
+    Sound.sfx.oops(); S.attempts++;
+    if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); return; }
+    wrong.forEach((w, i) => { if (w) slots[i].classList.add('bad'); else { locked[i] = true; slots[i].classList.add('ok'); } });
+    $('#msg').textContent = '🙂 Almost! The green words are correct. Fix the red ones.'; showHint(q);
+    setTimeout(() => {                                       // wrong words bounce back, correct ones stay
+      wrong.forEach((w, i) => { if (w) { placed[i] = null; slots[i].classList.remove('bad'); } });
+      refresh();
+    }, 900);
+  };
+}
+
+/* =====================================================================
+   11) End of a question: score + gentle feedback
+   ===================================================================== */
+function finishQuestion(result) {
+  if (S.locked) return;
+  S.locked = true; stopTimer(); clearDanger();
+  const L = LEVELS[S.level], q = L.questions[S.q], st = S.stats[S.level];
+  let pts = 0, cls = 'good', title;
+  if (result === 'first')       { pts = CONFIG.pointsFirst;  st.first++;  S.marks[S.q] = 'done'; title = pick(['🎉 Great job!', '🌟 Correct!', '👏 Awesome!', '😄 You got it!']); Sound.sfx.ding(); }
+  else if (result === 'second') { pts = CONFIG.pointsSecond; st.second++; S.marks[S.q] = 'half'; title = '💪 You fixed it! Well done!'; Sound.sfx.ding(); }
+  else {
+    st.miss++; S.marks[S.q] = 'miss'; cls = 'soft';
+    title = result === 'timeout' ? "💥 BOOM! Time's up – no worries! Let's look at the answer." : "🙂 So close! Let's look at the answer together.";
+    S.missed.push({ full: fullOf(L, q), why: q.why });
+    if (result === 'timeout') setTimeout(() => Sound.sfx.oops(), 500);
+  }
+  S.coins += pts; $('#coins').textContent = S.coins; updateHud();
+  const last = S.q === L.questions.length - 1;
+  const full = fullOf(L, q);
+  $('#msg').textContent = '';
+  const box = $('#fbBox');
+  box.innerHTML = `<div class="fb ${cls}">
+      <div class="ft">${title}${pts ? ` &nbsp;+${pts} ⭐` : ''}</div>
+      <div class="ff">✅ ${full}</div>
+      <div class="fw">${q.why || ''}</div>
+      <div class="actions">
+        ${'speechSynthesis' in window ? '<button class="btn3d alt" id="sayFull">🔊 Listen to the sentence</button>' : ''}
+        <button class="btn3d orange" id="nextBtn">${last ? 'Finish level ➜' : 'Next question ➜'}</button>
+      </div></div>`;
+  const sf = $('#sayFull'); if (sf) sf.onclick = () => speak(full.replace(/\(.*?\)/g, ''));
+  $('#nextBtn').onclick = () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); nextQuestion(); };
+  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function nextQuestion() {
+  const L = LEVELS[S.level];
+  if (S.q < L.questions.length - 1) { S.q++; startQuestion(); }
+  else showLevelDone();
+}
+
+/* =====================================================================
+   12) Level summary / final summary (with leaderboard rank)
+   ===================================================================== */
+function starsFor(pct) { return pct >= 0.75 ? 3 : pct >= 0.45 ? 2 : 1; }   // always at least 1 star
+function showLevelDone() {
+  const L = LEVELS[S.level], st = S.stats[S.level], n = L.questions.length;
+  const pct = (st.first * CONFIG.pointsFirst + st.second * CONFIG.pointsSecond) / (n * CONFIG.pointsFirst);
+  const stars = starsFor(pct), isLast = S.level === LEVELS.length - 1;
+  Sound.sfx.win(); confetti(18);
+  screen.innerHTML = `<div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">Level ${S.level + 1} complete! 🎉</h2>
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <div class="stats">
+        <div class="stat">✅ Correct first try: ${st.first}</div>
+        <div class="stat">💪 Fixed it: ${st.second}</div>
+        <div class="stat">📖 Learned something: ${st.miss}</div>
+      </div>
+      <p class="sub" id="lvName"></p>
+      <button class="btn3d big" id="goNext">${isLast ? 'See my results 🏆' : 'Next level ➜'}</button></div>`;
+  $('#lvName').textContent = `Well done, ${S.name}! ${pick(['Ready for more? 🚀', 'Nice work! 😄', 'Keep going! 💪'])}`;
+  $('#goNext').onclick = () => { if (isLast) showFinal(); else { S.level++; showIntro(); } };
+}
+function showFinal() {
+  const maxPts = totalQ() * CONFIG.pointsFirst, pct = S.coins / maxPts, stars = starsFor(pct);
+  const msg = pct >= 0.75 ? 'Super Grammar Shopper! 🏆' : pct >= 0.45 ? 'Great work! Just a little more practice 😄' : 'Great effort! Play again and you will get even better 💪';
+  const me = recordScore();                                   // save to the leaderboard
+  Sound.sfx.win(); confetti(40);
+  screen.innerHTML = `<div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h1 class="title">Negative Mart Master!</h1>
+      <p class="sub" id="finName"></p>
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <div class="stats"><div class="stat">⭐ ${S.coins} / ${maxPts}</div></div>
+      <div class="yourrank">🏅 You are #${me.rank} of ${me.total}</div>
+      <p class="sub"><b>${msg}</b></p>
+      ${boardHTML(me.id)}
+      ${S.missed.length ? `<b>📖 Quick review before you go</b><div class="review">${S.missed.map(m => `<div>✅ ${m.full}<br><small>${m.why || ''}</small></div>`).join('')}</div>` : '<p class="sub">🎊 You answered everything correctly!</p>'}
+      <div class="actions">
+        <button class="btn3d big" id="again">Play again 🔁</button>
+        <button class="btn3d big pink" id="home">Change character 🏠</button>
+      </div></div>`;
+  $('#finName').textContent = `${S.char.emoji} ${S.name}`;
+  $('#again').onclick = () => { S.level = 0; S.coins = 0; S.stats = []; S.missed = []; showIntro(); };
+  $('#home').onclick = () => { Sound.stop(); showStart(); };
+}
+function confetti(n) {                                   // emoji rain
+  const em = ['🎉', '⭐', '🍎', '🍪', '🧃', '✨', '🥛'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div'); c.className = 'confetti'; c.textContent = pick(em);
+    c.style.left = Math.random() * 100 + 'vw'; c.style.animationDuration = 2.5 + Math.random() * 2.5 + 's';
+    c.style.animationDelay = Math.random() * 1.2 + 's'; document.body.appendChild(c);
+    setTimeout(() => c.remove(), 6500);
+  }
+}
+
+/* =====================================================================
+   13) Music button + start the game
+   ===================================================================== */
+$('#musicBtn').onclick = () => { Sound.init(); $('#musicBtn').textContent = Sound.toggle() ? '🎵' : '🔇'; };
+showStart();
+</script>
+</body>
+</html>

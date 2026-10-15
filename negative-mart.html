@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Negative Mart – Present Simple Negative</title>
+<!--
+=====================================================================
+  🛒 NEGATIVE MART  –  เกมทบทวน Present Simple (Negative Statement)
+  สำหรับ ม.1  |  ไฟล์เดียว เปิดได้ทันทีบน PC / มือถือ ไม่ต้องใช้อินเทอร์เน็ต*
+  (*เสียงอ่านประโยคใช้เสียงในเครื่องของเบราว์เซอร์ / ถ้าเครื่องไม่มีเสียงอังกฤษ ปุ่มอาจไม่ดัง)
+
+  วิธีแก้ไขโจทย์:  เลื่อนลงไปที่ <script> ส่วน "1) CONFIG" และ "2) LEVELS"
+    - เปลี่ยนเวลาต่อข้อ  ->  CONFIG.seconds
+    - แก้/เพิ่ม/ลบโจทย์   ->  แก้ใน array questions ของแต่ละด่าน (ด่านละ 7 ข้อ หรือกี่ข้อก็ได้)
+=====================================================================
+-->
+<style>
+:root{
+  --ink:#3a2f5b; --pink:#ff6b9d; --pinkd:#d9477c; --teal:#2ec4b6; --teald:#1f9a8f;
+  --orange:#ff9f1c; --oranged:#d97f00; --purple:#7b5cff; --purpled:#5a3fd6;
+  --red:#ff4d4d; --green:#3ecf7a; --greend:#25a25a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:"Nunito","Sarabun","Noto Sans Thai","Leelawadee UI",Tahoma,system-ui,sans-serif;
+  color:var(--ink); overflow-x:hidden; user-select:none; -webkit-user-select:none;
+}
+
+/* ---------- ฉากหลัง 3D (CSS 3D transforms ล้วน) ---------- */
+.world{position:fixed;inset:0;perspective:900px;overflow:hidden;z-index:0;
+  background:linear-gradient(#ffe3a3 0%,#ffc4dd 55%,#cfe8ff 100%)}
+.shelf{position:absolute;top:8%;width:24vw;max-width:260px;height:64%;
+  background:linear-gradient(#fff,#ffeef6);border:6px solid #ff8fb8;border-radius:12px;
+  display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+  font-size:clamp(20px,3.6vw,38px);box-shadow:0 0 30px rgba(255,107,157,.35);opacity:.9}
+.shelf.left{left:1%;transform:rotateY(52deg);transform-origin:left center}
+.shelf.right{right:1%;transform:rotateY(-52deg);transform-origin:right center}
+.shelf div{letter-spacing:.2em;white-space:nowrap}
+.floor{position:absolute;left:-50%;width:200%;bottom:-6%;height:55%;transform:rotateX(68deg);transform-origin:bottom;
+  background:conic-gradient(#fff 25%,#ffd9e8 0 50%,#fff 0 75%,#ffd9e8 0) 0 0/90px 90px;opacity:.85}
+.floaters span{position:absolute;font-size:clamp(26px,5vw,48px);animation:drift 7s ease-in-out infinite;
+  transform-style:preserve-3d;filter:drop-shadow(0 10px 6px rgba(0,0,0,.18))}
+@keyframes drift{0%,100%{transform:translateY(0) rotateY(0)}50%{transform:translateY(-26px) rotateY(180deg)}}
+
+/* ---------- โครงหน้า ---------- */
+#screen{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:10px 12px 28px;min-height:100dvh;
+  display:flex;flex-direction:column;justify-content:center}
+.vignette{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(255,40,40,.45) 100%)}
+.danger-on .vignette{opacity:1;animation:pulseV .5s infinite alternate}
+@keyframes pulseV{from{opacity:.35}to{opacity:1}}
+
+/* ---------- ปุ่ม 3D ---------- */
+.btn3d{--c:var(--teal);--cd:var(--teald);font:inherit;font-weight:800;font-size:clamp(16px,2.6vw,20px);color:#fff;
+  background:var(--c);border:0;border-radius:18px;padding:13px 24px;cursor:pointer;
+  box-shadow:0 7px 0 var(--cd),0 14px 20px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;
+  transform:translateY(0)}
+.btn3d:hover{transform:translateY(-2px);box-shadow:0 9px 0 var(--cd),0 16px 22px rgba(0,0,0,.22)}
+.btn3d:active{transform:translateY(6px);box-shadow:0 1px 0 var(--cd),0 4px 8px rgba(0,0,0,.2)}
+.btn3d.alt{--c:var(--purple);--cd:var(--purpled)}
+.btn3d.pink{--c:var(--pink);--cd:var(--pinkd)}
+.btn3d.orange{--c:var(--orange);--cd:var(--oranged)}
+.btn3d:disabled{opacity:.55;cursor:not-allowed}
+.btn3d.big{font-size:clamp(20px,3.4vw,26px);padding:15px 38px}
+
+#musicBtn{position:fixed;top:10px;right:10px;z-index:20;width:48px;height:48px;border-radius:50%;padding:0;font-size:22px}
+
+/* ---------- การ์ด / แท็บเล็ต ---------- */
+.card{background:#fff;border-radius:26px;padding:clamp(16px,3vw,28px);
+  box-shadow:0 10px 0 #e6d9ff,0 22px 40px rgba(60,30,120,.25);text-align:center}
+.title{font-size:clamp(28px,6vw,48px);font-weight:900;margin:0;
+  background:linear-gradient(90deg,var(--pink),var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 6px 0 rgba(0,0,0,.06)}
+.sub{margin:6px 0 14px;font-weight:700;opacity:.8}
+
+/* เลือกตัวละคร */
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;perspective:700px;margin:12px 0}
+.char{background:linear-gradient(#fff,#f3ecff);border:4px solid #e0d4ff;border-radius:20px;padding:10px 4px;cursor:pointer;
+  transition:transform .25s;transform-style:preserve-3d;box-shadow:0 6px 0 #d6c8ff}
+.char:hover{transform:rotateY(14deg) translateZ(14px)}
+.char .em{font-size:clamp(40px,9vw,64px);display:block;transform:translateZ(30px)}
+.char b{font-size:clamp(12px,2.6vw,16px)}
+.char.sel{border-color:var(--pink);background:linear-gradient(#fff,#ffe3ee);transform:translateY(-6px) scale(1.05);box-shadow:0 10px 0 var(--pinkd)}
+.char.sel .em{animation:wiggle 1.2s infinite}
+@keyframes wiggle{0%,100%{transform:translateZ(30px) rotate(-8deg)}50%{transform:translateZ(30px) rotate(8deg)}}
+.name-in{font:inherit;font-weight:800;font-size:20px;text-align:center;width:min(100%,320px);padding:12px;border-radius:16px;
+  border:4px solid #e0d4ff;color:var(--ink);outline:none;user-select:text;-webkit-user-select:text}
+.name-in:focus{border-color:var(--purple)}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ตัวละคร 3D ลอยได้ */
+.avatar3d{display:inline-block;font-size:clamp(54px,12vw,86px);transform-style:preserve-3d;animation:float3d 3.2s ease-in-out infinite;
+  filter:drop-shadow(0 16px 8px rgba(0,0,0,.2))}
+@keyframes float3d{0%,100%{transform:translateY(0) rotateY(-18deg)}50%{transform:translateY(-12px) rotateY(18deg)}}
+
+/* ---------- HUD ---------- */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.92);
+  border-radius:20px;padding:8px 14px;box-shadow:0 6px 0 #e6d9ff;margin:0 54px 10px 0;font-weight:800}
+.hud .who{display:flex;align-items:center;gap:6px;min-width:0}
+.hud .who .e{font-size:30px}
+.hud .who span.n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22vw}
+.hud .mid{text-align:center;font-size:clamp(12px,2.6vw,16px);line-height:1.25}
+.dots{display:flex;gap:4px;justify-content:center;margin-top:3px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#e4dcf7;display:block}
+.dots i.done{background:var(--green)} .dots i.half{background:var(--orange)} .dots i.miss{background:#b9aee0} .dots i.now{background:var(--pink);transform:scale(1.35)}
+.coins{font-size:clamp(14px,3vw,18px);white-space:nowrap}
+
+/* ตัวจับเวลา + ระเบิด */
+.timer{position:relative;height:34px;background:rgba(255,255,255,.9);border-radius:20px;margin:6px 6px 14px;box-shadow:inset 0 3px 6px rgba(0,0,0,.15)}
+.timer .fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:20px;background:linear-gradient(90deg,#3ecf7a,#ffd23f);transition:width .1s linear}
+#bomb{position:absolute;top:50%;left:100%;font-size:34px;transform:translate(-50%,-50%);z-index:2;line-height:1}
+#bomb:after{content:"✨";position:absolute;top:-14px;right:-8px;font-size:18px;animation:spark .3s infinite alternate}
+@keyframes spark{to{transform:scale(1.5) rotate(40deg);opacity:.5}}
+.timer .secs{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;z-index:3;font-size:16px}
+.danger .timer .fill{background:linear-gradient(90deg,#ff4d4d,#ff9f1c)}
+.danger #bomb{animation:bombshake .22s infinite}
+@keyframes bombshake{0%,100%{transform:translate(-50%,-50%) rotate(-14deg) scale(1.2)}50%{transform:translate(-50%,-50%) rotate(14deg) scale(1.35)}}
+.warn{display:none;text-align:center;font-weight:900;color:#d62828;font-size:clamp(14px,3vw,18px);margin:-8px 0 8px}
+.danger .warn{display:block;animation:pulseT .5s infinite alternate}
+@keyframes pulseT{to{transform:scale(1.08)}}
+#count{position:absolute;top:-18px;right:-10px;width:70px;height:70px;border-radius:50%;background:var(--red);color:#fff;
+  font-size:42px;font-weight:900;display:none;align-items:center;justify-content:center;z-index:4;
+  box-shadow:0 6px 0 #a61e1e,0 12px 18px rgba(0,0,0,.3);transform:translateZ(40px)}
+.danger #count{display:flex;animation:pop .5s infinite alternate}
+@keyframes pop{from{transform:scale(.9)}to{transform:scale(1.15)}}
+
+/* แท็บเล็ต */
+.tabwrap{position:relative;perspective:1200px}
+.tablet{background:#fff;border:10px solid #4a4e69;border-radius:30px;padding:clamp(14px,3vw,26px);
+  box-shadow:0 12px 0 #2b2d42,0 26px 44px rgba(0,0,0,.3);transform:rotateX(2deg);transform-origin:bottom;
+  min-height:260px;position:relative}
+.danger .tablet{animation:tabshake .35s infinite}
+@keyframes tabshake{0%,100%{transform:rotateX(2deg) translateX(0)}50%{transform:rotateX(2deg) translateX(-3px)}}
+.tag{display:inline-block;background:var(--orange);color:#fff;font-weight:900;border-radius:12px;padding:3px 12px;font-size:14px;
+  box-shadow:0 3px 0 var(--oranged)}
+.speak{position:absolute;top:10px;right:12px;font-size:16px;padding:8px 14px;border-radius:14px}
+.prompt{font-size:clamp(22px,5vw,34px);font-weight:900;margin:16px 0 4px;line-height:1.35}
+.thai{font-size:clamp(13px,2.8vw,16px);opacity:.75;font-weight:700;margin:2px 0 14px}
+.blank{display:inline-block;min-width:3.2em;border-bottom:5px dashed var(--purple);color:var(--purple);margin:0 4px}
+
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:10px}
+.choice{font:inherit;font-weight:800;font-size:clamp(17px,3.6vw,24px);padding:16px 12px;border-radius:20px;border:0;cursor:pointer;
+  color:var(--ink);background:linear-gradient(#fff,#f1eaff);box-shadow:0 8px 0 #cdbdf7,0 16px 22px rgba(60,30,120,.2);
+  transform:perspective(500px) rotateX(6deg);transition:transform .12s,box-shadow .12s}
+.choice:hover{transform:perspective(500px) rotateX(0) translateY(-4px)}
+.choice:active{transform:perspective(500px) rotateX(0) translateY(6px);box-shadow:0 2px 0 #cdbdf7}
+.choice.wrong{background:#ffd9d9;box-shadow:0 8px 0 #f0a0a0;animation:shake .4s;opacity:.7}
+.choice.right{background:#c9f7dc;box-shadow:0 8px 0 var(--greend);animation:hop .5s}
+@keyframes hop{50%{transform:translateY(-12px) scale(1.04)}}
+
+.blank-input{font:inherit;font-weight:900;font-size:inherit;width:5.2em;text-align:center;border:0;border-bottom:5px solid var(--purple);
+  background:#f4efff;border-radius:10px 10px 0 0;color:var(--purple);outline:none;margin:0 6px;padding:2px 4px;user-select:text;-webkit-user-select:text}
+.blank-input.ok{background:#c9f7dc;color:var(--greend);border-color:var(--greend)}
+.blank-input.bad{background:#ffd9d9;animation:shake .4s}
+
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:3.6em;min-height:1.5em;padding:0 8px;margin:2px 4px;
+  border:4px dashed var(--purple);border-radius:14px;background:#f4efff;color:var(--purple);vertical-align:middle;cursor:pointer;
+  transition:transform .15s,background .15s}
+.slot.hot{background:#e0d3ff;transform:scale(1.12)}
+.slot.filled{border-style:solid;background:#fff;box-shadow:0 5px 0 #cdbdf7}
+.slot.ok{border-color:var(--greend);background:#c9f7dc;color:var(--greend);box-shadow:0 5px 0 var(--greend);cursor:default}
+.slot.bad{border-color:var(--red);background:#ffd9d9;animation:shake .4s}
+.bank{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:18px 0 8px;min-height:60px}
+.chip{font-weight:900;font-size:clamp(17px,3.6vw,24px);padding:10px 18px;border-radius:16px;background:linear-gradient(#ffe29a,#ffc24b);color:#7a4b00;
+  box-shadow:0 7px 0 #d99a1b,0 14px 18px rgba(0,0,0,.2);cursor:grab;touch-action:none;transform:perspective(400px) rotateX(8deg)}
+.chip.used{visibility:hidden}
+.chip.dragging{opacity:.35}
+.chip.ghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-60%) scale(1.15) rotate(-5deg);box-shadow:0 20px 24px rgba(0,0,0,.35)}
+
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.msg{min-height:24px;font-weight:800;color:var(--purpled);margin-top:8px}
+
+/* ผลหลังตอบ */
+.fb{margin-top:16px;border-radius:20px;padding:14px;text-align:center;animation:slideup .35s}
+@keyframes slideup{from{transform:translateY(20px);opacity:0}}
+.fb.good{background:#d9f9e6;border:3px solid var(--green)}
+.fb.soft{background:#fff1d6;border:3px solid var(--orange)}
+.fb .ft{font-size:clamp(20px,4vw,26px);font-weight:900}
+.fb .ff{font-size:clamp(17px,3.4vw,22px);font-weight:800;margin:6px 0;color:var(--purpled)}
+.fb .fw{font-size:clamp(13px,2.8vw,16px);font-weight:700;opacity:.85;line-height:1.5}
+
+/* ระเบิด */
+.boom{position:fixed;left:50%;top:40%;font-size:min(60vw,320px);transform:translate(-50%,-50%) scale(0);z-index:30;pointer-events:none;
+  animation:boom .9s ease-out forwards}
+@keyframes boom{30%{transform:translate(-50%,-50%) scale(1.1) rotate(8deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.6) rotate(-6deg);opacity:0}}
+
+/* หน้าแนะนำด่าน */
+.rule{display:grid;gap:8px;text-align:left;background:#f4efff;border-radius:18px;padding:12px 16px;margin:12px 0;font-weight:700;font-size:clamp(14px,3vw,17px)}
+.rule b{color:var(--purpled)}
+.stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.stat{background:#f4efff;border-radius:16px;padding:8px 14px;font-weight:800}
+.stars{font-size:clamp(34px,8vw,56px);letter-spacing:6px}
+.review{text-align:left;margin-top:10px}
+.review div{background:#fff7e6;border-left:6px solid var(--orange);border-radius:12px;padding:8px 12px;margin:8px 0;font-weight:700;font-size:15px}
+.confetti{position:fixed;top:-40px;font-size:28px;z-index:25;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+
+@media (max-width:600px){
+  .shelf{width:16vw}
+  .hud .who span.n{max-width:18vw}
+  .choices{grid-template-columns:1fr}
+  #count{width:56px;height:56px;font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<!-- ฉากหลัง 3D -->
+<div class="world" aria-hidden="true">
+  <div class="shelf left"><div>🥛🧃🥛</div><div>🍞🥐🍞</div><div>🍎🍌🍎</div><div>🍫🍪🍫</div></div>
+  <div class="shelf right"><div>🥜🍿🥜</div><div>🧀🥚🧀</div><div>🍓🍇🍓</div><div>🥤🧋🥤</div></div>
+  <div class="floor"></div>
+  <div class="floaters">
+    <span style="left:30%;top:12%;animation-delay:0s">🍎</span>
+    <span style="left:62%;top:8%;animation-delay:1.2s">🥛</span>
+    <span style="left:46%;top:20%;animation-delay:2.4s">🍪</span>
+    <span style="left:75%;top:26%;animation-delay:3.1s">🧃</span>
+    <span style="left:20%;top:30%;animation-delay:4.2s">🍞</span>
+  </div>
+</div>
+<div class="vignette"></div>
+<button class="btn3d pink" id="musicBtn" title="เปิด/ปิดเพลง">🎵</button>
+<div id="screen"></div>
+
+<script>
+/* =====================================================================
+   1) CONFIG – ตั้งค่าทั่วไป
+   ===================================================================== */
+const CONFIG = {
+  seconds: 15,        // เวลาต่อข้อ (วินาที)
+  warnAt: 5,          // เริ่มเตือนระเบิดเมื่อเหลือกี่วินาที
+  pointsFirst: 10,    // ตอบถูกครั้งแรก
+  pointsSecond: 5     // ตอบถูกในครั้งที่ 2 (ให้โอกาสแก้ตัว ไม่ให้รู้สึกพ่ายแพ้)
+};
+
+// ตัวละครให้เลือก (เพิ่มได้ เช่น {id:'dog', emoji:'🐶', name:'หมา'})
+const CHARACTERS = [
+  { id:'panda',  emoji:'🐼', name:'แพนด้า' },
+  { id:'rabbit', emoji:'🐰', name:'กระต่าย' },
+  { id:'fox',    emoji:'🦊', name:'จิ้งจอก' },
+  { id:'cat',    emoji:'🐱', name:'แมว' }
+];
+
+/* =====================================================================
+   2) LEVELS – ข้อมูลโจทย์ทั้งหมด (แก้ตรงนี้ได้เลย!)
+   ---------------------------------------------------------------------
+   ด่าน 1  type:'choice'  คลิกเลือกคำตอบ
+     { prompt:"ประโยค/คำถาม (ใช้ ___ แทนช่องว่างได้)",
+       th:"คำอธิบายภาษาไทยใต้โจทย์",
+       choices:["ตัวเลือก1","ตัวเลือก2",...],
+       answer: 1,                 // เลขตัวเลือกที่ถูก (เริ่มนับที่ 0)
+       full:"ประโยคเต็มที่ถูก",     // (ไม่ใส่ก็ได้ ถ้าโจทย์มี ___ ระบบเติมให้เอง)
+       say:"ข้อความที่ให้ปุ่มลำโพงอ่าน", // (ไม่ใส่ก็ได้)
+       why:"เหตุผลภาษาไทย" }
+
+   ด่าน 2  type:'type'    เติมคำสั้นๆ
+     { s:"My brother ___ drink milk.",   // ___ = ช่องว่าง (มีได้ 1 ช่อง)
+       th:"คำสั่งภาษาไทย",
+       answers:["doesn't","does not"],  // คำตอบที่ยอมรับได้ทั้งหมด (ไม่สนตัวพิมพ์เล็ก/ใหญ่)
+       hint:"คำใบ้ที่จะโชว์เมื่อตอบผิดครั้งแรก",
+       why:"เหตุผล" }
+
+   ด่าน 3  type:'drag'    ลากคำไปเติม
+     { s:"He {0} {1} milk.",             // {0} {1} = ช่องว่างลำดับที่ 0, 1 ...
+       th:"คำสั่งภาษาไทย",
+       answers:["doesn't","like"],      // คำที่ถูกของแต่ละช่อง (ตามลำดับ)
+       bank:["doesn't","don't","like","likes"], // คำทั้งหมดที่ให้ลาก (ใส่ตัวหลอกได้)
+       hint:"...", why:"..." }
+   ===================================================================== */
+const LEVELS = [
+  /* ------------------------- ด่าน 1 ------------------------- */
+  {
+    type:'choice', icon:'📱', title:'ด่าน 1: Order Challenge',
+    story:'ลูกค้าส่งออเดอร์เข้าแท็บเล็ต! อ่านให้ดี แล้วเลือกคำตอบที่ถูกต้องนะ',
+    rule:[
+      "<b>I / You / We / They</b> ➜ don't + V.1 &nbsp;(They don't eat dairy.)",
+      "<b>He / She / It</b> ➜ doesn't + V.1 &nbsp;(He doesn't like sugar.)",
+      "<b>Verb to be:</b> I am not • He/She/It is not (isn't) • You/We/They are not (aren't)"
+    ],
+    questions:[
+      { prompt:"My customer is a girl. She ___ want chocolate.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+        choices:["don't","doesn't","isn't"], answer:1,
+        why:"She เป็นเอกพจน์ (he/she/it) จึงใช้ doesn't + V.1 (want)" },
+      { prompt:"They ___ eat dairy.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+        choices:["don't","doesn't","aren't"], answer:0,
+        why:"They ใช้ don't + V.1 (eat) – ไม่ใช้ aren't เพราะ eat เป็นกริยาแท้" },
+      { prompt:"He doesn't eat nuts!", th:"ลูกค้าบอกแบบนี้ ขนมแบบไหนที่ต้อง \"หลีกเลี่ยง\" (Avoid)?",
+        choices:["This bar contains nuts.","This bar doesn't contain nuts."], answer:0,
+        full:"This bar contains nuts. (ห้ามหยิบ!)",
+        say:"He doesn't eat nuts! Which snack should you avoid?",
+        why:"doesn't eat nuts = ไม่กินถั่ว จึงต้องเลี่ยงขนมที่ contains nuts (มีถั่ว)" },
+      { prompt:"Which label on the rice cake is correct?", th:"ป้ายบนชั้นวางอันไหนเขียนถูกไวยากรณ์?",
+        choices:["It don't have nuts.","It doesn't have nuts.","It doesn't has nuts."], answer:1,
+        full:"It doesn't have nuts.",
+        why:"It ใช้ doesn't และกริยาต้องกลับเป็นรูปเดิม have (ไม่ใช่ has)" },
+      { prompt:"These apples ___ fresh.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+        choices:["isn't","aren't","don't"], answer:1,
+        why:"These apples เป็นพหูพจน์ ใช้ are not = aren't (Verb to be ไม่ใช้ don't)" },
+      { prompt:"Which sentence is correct?", th:"เลือกประโยคปฏิเสธที่ถูกต้อง",
+        choices:["He doesn't likes sugar.","He doesn't like sugar.","He don't like sugar."], answer:1,
+        full:"He doesn't like sugar.",
+        why:"หลัง doesn't ต้องใช้ V.1 รูปเดิม → like (ตัด -s ออก!)" },
+      { prompt:"I ___ a cashier. I am a customer!", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+        choices:["am not","isn't","aren't"], answer:0,
+        why:"ประธาน I ใช้ am not (ไม่ใช้ amn't)" }
+    ]
+  },
+
+  /* ------------------------- ด่าน 2 ------------------------- */
+  {
+    type:'type', icon:'🛒', title:'ด่าน 2: Shelf Mission',
+    story:'ไปที่ชั้นวางสินค้า! พิมพ์คำที่หายไปในป้ายสินค้าให้ถูกต้อง',
+    rule:[
+      "ช่องว่างอาจเป็น <b>don't / doesn't / isn't / aren't / am not</b> หรือ <b>กริยา V.1</b>",
+      "ดูประธานก่อนเสมอ: He/She/It/ชื่อคนเดียว ➜ <b>doesn't</b>",
+      "หลัง don't / doesn't ใช้ <b>กริยารูปเดิม</b> (ไม่เติม s/es)"
+    ],
+    questions:[
+      { s:"My brother ___ drink milk.", th:"พิมพ์คำปฏิเสธที่ถูกต้อง (ประธานเป็นเอกพจน์)",
+        answers:["doesn't","does not"], hint:"My brother = He → doesn't",
+        why:"My brother = he จึงใช้ doesn't + V.1 (drink)" },
+      { s:"We ___ buy candy on Monday.", th:"พิมพ์คำปฏิเสธที่ถูกต้อง",
+        answers:["don't","do not"], hint:"We → don't",
+        why:"We ใช้ don't + V.1 (buy)" },
+      { s:"The milk ___ cold.", th:"พิมพ์คำปฏิเสธ Verb to be (milk = it)",
+        answers:["isn't","is not"], hint:"it → is not (isn't)",
+        why:"The milk = it ใช้ is not = isn't (ตามด้วยคุณศัพท์ cold)" },
+      { s:"The cookies ___ sweet.", th:"พิมพ์คำปฏิเสธ Verb to be (cookies = they)",
+        answers:["aren't","are not"], hint:"they → are not (aren't)",
+        why:"The cookies = they ใช้ are not = aren't" },
+      { s:"My mom doesn't ___ (like) coffee.", th:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
+        answers:["like"], hint:"หลัง doesn't ต้องตัด -s → like",
+        why:"หลัง doesn't ใช้ V.1 รูปเดิม → like (ไม่ใช่ likes)" },
+      { s:"I ___ hungry now.", th:"พิมพ์คำปฏิเสธ Verb to be สำหรับ I",
+        answers:["am not"], hint:"I → am not",
+        why:"ประธาน I ใช้ am not (ไม่ย่อเป็น amn't)" },
+      { s:"The pandas don't ___ (eat) meat.", th:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
+        answers:["eat"], hint:"หลัง don't ใช้กริยารูปเดิม → eat",
+        why:"หลัง don't ใช้ V.1 รูปเดิม → eat" }
+    ]
+  },
+
+  /* ------------------------- ด่าน 3 ------------------------- */
+  {
+    type:'drag', icon:'💳', title:'ด่าน 3: Checkout Fix',
+    story:'ถึงเคาน์เตอร์แคชเชียร์แล้ว! ลากคำ (หรือแตะคำ) ไปเติมช่องว่างให้ประโยคถูกต้อง',
+    rule:[
+      "<b>Don't / Doesn't + V.1</b> – กริยาต้องเป็นรูปเดิม ไม่เติม s/es",
+      "<b>Doesn't</b> ใช้กับ He / She / It   •   <b>Don't</b> ใช้กับ I / You / We / They",
+      "ห้ามใช้ซ้อนกัน เช่น isn't <b>not</b> ❌ – มีคำปฏิเสธคำเดียวพอ"
+    ],
+    questions:[
+      { s:"He {0} {1} milk.", th:"ลากคำไปเติม 2 ช่อง",
+        answers:["doesn't","like"], bank:["doesn't","don't","like","likes"],
+        hint:"He → doesn't และกริยาต้องไม่เติม s",
+        why:"He doesn't like milk. – หลัง doesn't ใช้ like ไม่ใช่ likes" },
+      { s:"They {0} {1} soda.", th:"ลากคำไปเติม 2 ช่อง",
+        answers:["don't","want"], bank:["don't","doesn't","want","wants"],
+        hint:"They → don't",
+        why:"They don't want soda. – They ใช้ don't ไม่ใช่ doesn't" },
+      { s:"This cake {0} fresh.", th:"ลากคำปฏิเสธ Verb to be ไปเติม",
+        answers:["isn't"], bank:["isn't","aren't","don't","not"],
+        hint:"This cake = it → isn't",
+        why:"This cake isn't fresh. – ไม่ต้องใส่ not ซ้ำอีก (isn't not ❌)" },
+      { s:"She {0} {1} pizza.", th:"ลากคำไปเติม 2 ช่อง",
+        answers:["doesn't","eat"], bank:["doesn't","don't","eat","eats"],
+        hint:"She → doesn't + กริยารูปเดิม",
+        why:"She doesn't eat pizza. – eat ไม่เติม s" },
+      { s:"We {0} happy.", th:"ลากคำปฏิเสธ Verb to be ไปเติม",
+        answers:["aren't"], bank:["aren't","isn't","don't","doesn't"],
+        hint:"We → are not (aren't)",
+        why:"We aren't happy. – happy เป็นคุณศัพท์ ใช้ Verb to be ไม่ใช้ don't" },
+      { s:"I {0} {1} nuts.", th:"ลากคำไปเติม 2 ช่อง",
+        answers:["don't","eat"], bank:["don't","doesn't","eat","eats"],
+        hint:"I → don't",
+        why:"I don't eat nuts. – I ใช้ don't + V.1" },
+      { s:"It {0} {1} sugar.", th:"ลากคำไปเติม 2 ช่อง",
+        answers:["doesn't","have"], bank:["doesn't","don't","have","has"],
+        hint:"It → doesn't + have (ไม่ใช่ has)",
+        why:"It doesn't have sugar. – หลัง doesn't ใช้ have ไม่ใช่ has" }
+    ]
+  }
+];
+
+/* =====================================================================
+   3) ระบบเสียง (สร้างเสียงเพลง/เอฟเฟกต์ด้วย WebAudio ไม่ต้องมีไฟล์เสียง)
+   ===================================================================== */
+const TRACKS = [ // เพลงของแต่ละด่าน: bpm, melody(16 ช่อง), bass(16 ช่อง)  ตัวเลข = semitone, null = เว้น
+  { bpm:112, wave:'triangle',
+    mel:[0,null,4,null,7,null,4,null,9,null,7,null,4,2,0,null],
+    bass:[0,null,0,null,-5,null,-5,null,-3,null,-3,null,-5,null,-5,null] },
+  { bpm:124, wave:'square',
+    mel:[7,null,9,7,4,null,2,4,7,null,9,null,12,null,9,7],
+    bass:[0,null,7,null,0,null,7,null,-3,null,4,null,-5,null,2,null] },
+  { bpm:134, wave:'triangle',
+    mel:[12,null,9,12,14,null,12,9,7,null,9,null,12,9,7,null],
+    bass:[0,null,4,null,5,null,7,null,0,null,4,null,7,null,5,null] }
+];
+const Sound = (() => {
+  let ctx, master, noiseBuf, timer = null, step = 0, nextT = 0, track = null, current = -1;
+  let musicOn = true;
+  const f = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function init() {                       // สร้าง AudioContext (ต้องหลังผู้ใช้กดปุ่ม)
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.7; master.connect(ctx.destination);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return true;
+  }
+  function tone(freq, t, dur, type = 'square', vol = 0.07, slideTo) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function noise(t, dur, vol, hp = 6000, lp) {
+    const s = ctx.createBufferSource(), g = ctx.createGain(), fl = ctx.createBiquadFilter();
+    s.buffer = noiseBuf; fl.type = lp ? 'lowpass' : 'highpass'; fl.frequency.value = lp || hp;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
+  }
+  function scheduler() {                  // ตั้งเวลาเล่นโน้ตล่วงหน้าเล็กน้อย
+    while (nextT < ctx.currentTime + 0.2) {
+      const m = track.mel[step], b = track.bass[step];
+      if (m !== null) tone(f(60 + m), nextT, 0.22, track.wave, 0.05);
+      if (b !== null) tone(f(48 + b), nextT, 0.28, 'triangle', 0.09);
+      if (step % 2 === 0) noise(nextT, 0.04, 0.05);
+      nextT += 60 / track.bpm / 4; step = (step + 1) % 16;
+    }
+  }
+  function play(n) {
+    current = n; if (!musicOn || !init()) return;
+    stop(); track = TRACKS[n % TRACKS.length]; step = 0; nextT = ctx.currentTime + 0.05;
+    timer = setInterval(scheduler, 50);
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function toggle() {
+    musicOn = !musicOn;
+    if (musicOn) { if (current >= 0) play(current); } else stop();
+    return musicOn;
+  }
+  const sfx = {
+    ding(){ if(!init())return; const t=ctx.currentTime; tone(784,t,.15,'sine',.16); tone(1175,t+.1,.3,'sine',.16); },
+    oops(){ if(!init())return; const t=ctx.currentTime; tone(330,t,.25,'sine',.14,220); },
+    tick(){ if(!init())return; tone(1100,ctx.currentTime,.07,'square',.09); },
+    boom(){ if(!init())return; const t=ctx.currentTime; noise(t,.7,.5,0,500); tone(120,t,.6,'sine',.35,40); },
+    win(){ if(!init())return; const t=ctx.currentTime; [523,659,784,1047,784,1047,1319].forEach((n,i)=>tone(n,t+i*.12,.25,'triangle',.14)); }
+  };
+  return { play, stop, toggle, sfx, init };
+})();
+
+/* อ่านประโยคออกเสียง (Text-to-Speech ของเบราว์เซอร์) */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1.1;
+  speechSynthesis.speak(u);
+}
+
+/* =====================================================================
+   4) STATE และตัวช่วยทั่วไป
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const screen = $('#screen');
+const S = { name:'', char:CHARACTERS[0], level:0, q:0, coins:0, attempts:0, locked:true,
+            stats:[], missed:[], marks:[], tid:null, deadline:0, lastSec:null };
+
+// ประโยคเต็มที่ถูกต้อง (ใช้โชว์หลังตอบ)
+function fullOf(L, q) {
+  if (L.type === 'choice') return q.full || q.prompt.replace('___', q.choices[q.answer]);
+  if (L.type === 'type')   return q.s.replace('___', q.answers[0]);
+  return q.s.replace(/\{(\d)\}/g, (m, i) => q.answers[i]);
+}
+// ข้อความที่ให้ปุ่ม 🔊 อ่านตอนทำโจทย์
+function sayOf(L, q) {
+  if (L.type === 'choice') return q.say || q.prompt.replace('___', 'blank');
+  if (L.type === 'type')   return q.s.replace('___', 'blank');
+  return q.s.replace(/\{\d\}/g, 'blank');
+}
+const norm = t => t.toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const totalQ = () => LEVELS.reduce((n, L) => n + L.questions.length, 0);
+function setName(el, name) { el.textContent = name; }
+
+/* =====================================================================
+   5) หน้าจอ: เริ่มเกม (เลือกตัวละคร + ใส่ชื่อ)
+   ===================================================================== */
+function showStart() {
+  stopTimer(); document.body.classList.remove('danger-on');
+  screen.innerHTML = `
+    <div class="card">
+      <div class="avatar3d" id="heroAv">${S.char.emoji}</div>
+      <h1 class="title">🛒 Negative Mart</h1>
+      <p class="sub">ช่วยลูกค้าเลือกของให้ถูกต้องด้วยประโยคปฏิเสธ (Present Simple Negative)</p>
+      <b>1) เลือกตัวละครของเธอ</b>
+      <div class="chars" id="chars">
+        ${CHARACTERS.map(c => `<div class="char ${c.id === S.char.id ? 'sel' : ''}" data-id="${c.id}"><span class="em">${c.emoji}</span><b>${c.name}</b></div>`).join('')}
+      </div>
+      <b>2) ใส่ชื่อของเธอ</b><br><br>
+      <input class="name-in" id="nameIn" maxlength="12" placeholder="พิมพ์ชื่อเล่น..." autocomplete="off" value="">
+      <p class="sub" style="margin-top:14px">🎵 มีเพลง • 🔊 กดฟังประโยคได้ • 💣 ข้อละ ${CONFIG.seconds} วินาที (ไม่ต้องกลัว ลองใหม่ได้!)</p>
+      <button class="btn3d big orange" id="goBtn">เริ่มเกม ▶</button>
+    </div>`;
+  $('#nameIn').value = S.name;
+  $('#chars').onclick = e => {
+    const c = e.target.closest('.char'); if (!c) return;
+    S.char = CHARACTERS.find(x => x.id === c.dataset.id);
+    document.querySelectorAll('.char').forEach(x => x.classList.toggle('sel', x === c));
+    $('#heroAv').textContent = S.char.emoji;
+  };
+  $('#goBtn').onclick = () => {
+    const v = $('#nameIn').value.trim();
+    if (!v) { const i = $('#nameIn'); i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake'); i.focus(); return; }
+    S.name = v; Sound.init();
+    S.level = 0; S.coins = 0; S.stats = []; S.missed = [];
+    showIntro();
+  };
+}
+
+/* =====================================================================
+   6) หน้าแนะนำด่าน
+   ===================================================================== */
+function showIntro() {
+  const L = LEVELS[S.level];
+  Sound.play(S.level);
+  screen.innerHTML = `
+    <div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">${L.icon} ${L.title}</h2>
+      <p class="sub" id="introName"></p>
+      <p class="sub">${L.story}</p>
+      <div class="rule">${L.rule.map(r => `<div>✨ ${r}</div>`).join('')}</div>
+      <p class="sub">${L.questions.length} ข้อ • ข้อละ ${CONFIG.seconds} วินาที • ตอบผิดครั้งแรกยังลองใหม่ได้ 😊</p>
+      <button class="btn3d big" id="playBtn">พร้อมแล้ว! ลุยเลย 🚀</button>
+    </div>`;
+  setName($('#introName'), `${S.char.emoji} ${S.name}`);
+  S.stats[S.level] = { first:0, second:0, miss:0 };
+  S.marks = [];
+  $('#playBtn').onclick = () => { S.q = 0; buildGame(); startQuestion(); };
+}
+
+/* =====================================================================
+   7) โครงหน้าเล่นเกม + HUD
+   ===================================================================== */
+function buildGame() {
+  const L = LEVELS[S.level];
+  screen.innerHTML = `
+    <div id="game">
+      <div class="hud">
+        <div class="who"><span class="e">${S.char.emoji}</span><span class="n" id="hudName"></span></div>
+        <div class="mid"><div id="hudLevel"></div><div class="dots" id="dots"></div></div>
+        <div class="coins">⭐ <span id="coins">0</span></div>
+      </div>
+      <div class="warn">⚠️ ระเบิดใกล้ทำงานแล้ว! ตอบเลย!</div>
+      <div class="timer"><span class="secs" id="secs"></span><div class="fill" id="fill"></div><div id="bomb">💣</div></div>
+      <div class="tabwrap"><div id="count"></div><div class="tablet" id="tablet"></div></div>
+    </div>`;
+  setName($('#hudName'), S.name);
+}
+function updateHud() {
+  const L = LEVELS[S.level];
+  $('#hudLevel').textContent = `${L.icon} ด่าน ${S.level + 1} • ข้อ ${S.q + 1}/${L.questions.length}`;
+  $('#coins').textContent = S.coins;
+  $('#dots').innerHTML = L.questions.map((_, i) =>
+    `<i class="${i === S.q ? 'now' : (S.marks[i] || '')}"></i>`).join('');
+}
+
+/* =====================================================================
+   8) ตัวจับเวลา + ระเบิด
+   ===================================================================== */
+function startTimer() {
+  stopTimer();
+  S.deadline = Date.now() + CONFIG.seconds * 1000; S.lastSec = null;
+  S.tid = setInterval(tick, 100); tick();
+}
+function stopTimer() { if (S.tid) { clearInterval(S.tid); S.tid = null; } }
+function tick() {
+  const total = CONFIG.seconds * 1000;
+  const left = Math.max(0, S.deadline - Date.now());
+  const pct = left / total * 100;
+  const fill = $('#fill'), bomb = $('#bomb'); if (!fill) return;
+  fill.style.width = pct + '%'; bomb.style.left = pct + '%';
+  const sec = Math.ceil(left / 1000);
+  if (sec !== S.lastSec) {
+    S.lastSec = sec; $('#secs').textContent = '⏱ ' + sec;
+    if (sec <= CONFIG.warnAt && sec > 0) {         // เตือนช่วงท้าย
+      $('#game').classList.add('danger'); document.body.classList.add('danger-on');
+      $('#count').textContent = sec; Sound.sfx.tick();
+    }
+  }
+  if (left <= 0) timeUp();
+}
+function timeUp() {                                  // 💥 หมดเวลา: ระเบิดแบบการ์ตูน แล้วเฉลยอย่างอ่อนโยน
+  if (S.locked) return;
+  stopTimer(); Sound.sfx.boom();
+  const b = document.createElement('div'); b.className = 'boom'; b.textContent = '💥'; document.body.appendChild(b);
+  setTimeout(() => b.remove(), 950);
+  finishQuestion('timeout');
+}
+function clearDanger() { const g = $('#game'); if (g) g.classList.remove('danger'); document.body.classList.remove('danger-on'); }
+
+/* =====================================================================
+   9) เริ่มข้อ / ตัวเรนเดอร์ของแต่ละประเภทโจทย์
+   ===================================================================== */
+function startQuestion() {
+  const L = LEVELS[S.level], q = L.questions[S.q];
+  S.attempts = 0; S.locked = false; clearDanger(); updateHud();
+  const tab = $('#tablet');
+  tab.innerHTML = `<span class="tag">${L.icon} Order #${S.q + 1}</span>
+    ${'speechSynthesis' in window ? '<button class="btn3d alt speak" id="spk">🔊 ฟัง</button>' : ''}
+    <div id="qbody"></div><div class="msg" id="msg"></div><div id="fbBox"></div>`;
+  const spk = $('#spk'); if (spk) spk.onclick = () => speak(sayOf(L, q));
+  ({ choice: renderChoice, type: renderType, drag: renderDrag })[L.type](q, L);
+  startTimer();
+}
+
+/* ---- ด่าน 1: คลิกเลือก ---- */
+function renderChoice(q, L) {
+  const html = q.prompt.replace('___', '<span class="blank">&nbsp;</span>');
+  $('#qbody').innerHTML = `<p class="prompt">${html}</p><p class="thai">${q.th || ''}</p>
+    <div class="choices">${q.choices.map((c, i) => `<button class="choice" data-i="${i}">${c}</button>`).join('')}</div>`;
+  $('#qbody').onclick = e => {
+    const btn = e.target.closest('.choice'); if (!btn || S.locked || btn.classList.contains('wrong')) return;
+    if (+btn.dataset.i === q.answer) {
+      btn.classList.add('right');
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+    } else {
+      btn.classList.add('wrong'); Sound.sfx.oops(); S.attempts++;
+      if (S.attempts >= 2) {
+        document.querySelectorAll('.choice')[q.answer].classList.add('right');
+        finishQuestion('fail');
+      } else $('#msg').textContent = '🙂 ใกล้แล้ว! ลองเลือกอีกครั้งนะ';
+    }
+  };
+}
+
+/* ---- ด่าน 2: พิมพ์คำสั้นๆ ---- */
+function renderType(q, L) {
+  const [a, b] = q.s.split('___');
+  $('#qbody').innerHTML = `<p class="prompt">${a}<input class="blank-input" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="14">${b}</p>
+    <p class="thai">${q.th || ''}</p>
+    <div class="actions"><button class="btn3d" id="chk">ตรวจคำตอบ ✔</button></div>`;
+  const inp = $('#ans'); setTimeout(() => inp.focus({ preventScroll: true }), 50);
+  const check = () => {
+    if (S.locked) return;
+    const v = norm(inp.value); if (!v) { $('#msg').textContent = '✏️ พิมพ์คำตอบก่อนนะ'; return; }
+    if (q.answers.map(norm).includes(v)) {
+      inp.classList.add('ok'); inp.disabled = true;
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+    } else {
+      Sound.sfx.oops(); S.attempts++;
+      inp.classList.remove('bad'); void inp.offsetWidth; inp.classList.add('bad');
+      if (S.attempts >= 2) { inp.value = q.answers[0]; inp.classList.add('ok'); inp.disabled = true; finishQuestion('fail'); }
+      else { $('#msg').textContent = '💡 คำใบ้: ' + (q.hint || 'ลองดูประธานอีกครั้งนะ'); inp.select(); }
+    }
+  };
+  $('#chk').onclick = check;
+  inp.onkeydown = e => { if (e.key === 'Enter') check(); };
+}
+
+/* ---- ด่าน 3: ลากคำไปเติม (รองรับเมาส์และสัมผัส + แตะคำเพื่อเติมอัตโนมัติ) ---- */
+function renderDrag(q, L) {
+  const placed = q.answers.map(() => null);      // placed[ช่อง] = index ของ chip ใน bank
+  const locked = q.answers.map(() => false);     // ช่องที่ตอบถูกแล้ว (ล็อกไว้)
+  let slotNo = 0;
+  const sentence = q.s.replace(/\{(\d)\}/g, (m, i) => `<span class="slot" data-i="${i}">&nbsp;</span>`);
+  $('#qbody').innerHTML = `<p class="prompt">${sentence}</p><p class="thai">${q.th || ''}</p>
+    <div class="bank" id="bank">${q.bank.map((w, i) => `<div class="chip" data-b="${i}">${w}</div>`).join('')}</div>
+    <div class="actions"><button class="btn3d" id="chk">ตรวจคำตอบ ✔</button></div>`;
+  const slots = [...document.querySelectorAll('.slot')], chips = [...document.querySelectorAll('.chip')];
+
+  function refresh() {
+    slots.forEach((s, i) => {
+      const b = placed[i];
+      s.innerHTML = b === null ? '&nbsp;' : q.bank[b];
+      s.classList.toggle('filled', b !== null);
+    });
+    chips.forEach((c, i) => c.classList.toggle('used', placed.includes(i)));
+  }
+  function put(slotIdx, b) {
+    if (locked[slotIdx] || S.locked) return;
+    placed[slotIdx] = b; refresh();
+  }
+  function putFirstEmpty(b) {
+    const i = placed.findIndex((p, k) => p === null && !locked[k]); if (i >= 0) put(i, b);
+  }
+  slots.forEach((s, i) => s.onclick = () => { if (!locked[i] && !S.locked && placed[i] !== null) { placed[i] = null; refresh(); } });
+
+  chips.forEach(ch => {
+    ch.addEventListener('pointerdown', e => {
+      if (S.locked || ch.classList.contains('used')) return;
+      e.preventDefault(); ch.setPointerCapture(e.pointerId);
+      const b = +ch.dataset.b, sx = e.clientX, sy = e.clientY; let ghost = null, moved = false;
+      const move = ev => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+          moved = true; ghost = ch.cloneNode(true); ghost.classList.add('ghost'); document.body.appendChild(ghost); ch.classList.add('dragging');
+        }
+        if (ghost) {
+          ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px';
+          const el = document.elementFromPoint(ev.clientX, ev.clientY), hot = el && el.closest('.slot');
+          slots.forEach(s => s.classList.toggle('hot', s === hot));
+        }
+      };
+      const up = ev => {
+        ch.removeEventListener('pointermove', move); ch.removeEventListener('pointerup', up); ch.removeEventListener('pointercancel', up);
+        if (ghost) ghost.remove(); ch.classList.remove('dragging'); slots.forEach(s => s.classList.remove('hot'));
+        if (!moved) putFirstEmpty(b);                            // แตะเฉยๆ = เติมช่องว่างแรก
+        else {
+          const el = document.elementFromPoint(ev.clientX, ev.clientY), s = el && el.closest('.slot');
+          if (s) { const i = +s.dataset.i; if (placed[i] !== null && !locked[i]) {} put(i, b); }
+        }
+      };
+      ch.addEventListener('pointermove', move); ch.addEventListener('pointerup', up); ch.addEventListener('pointercancel', up);
+    });
+  });
+
+  $('#chk').onclick = () => {
+    if (S.locked) return;
+    if (placed.some(p => p === null)) { $('#msg').textContent = '🧩 เติมให้ครบทุกช่องก่อนนะ'; return; }
+    const wrong = q.answers.map((a, i) => q.bank[placed[i]] !== a);
+    if (!wrong.some(Boolean)) {
+      slots.forEach(s => s.classList.add('ok'));
+      finishQuestion(S.attempts === 0 ? 'first' : 'second');
+      return;
+    }
+    Sound.sfx.oops(); S.attempts++;
+    if (S.attempts >= 2) {                                   // เฉลย: เติมคำที่ถูกทั้งหมด
+      q.answers.forEach((a, i) => { placed[i] = q.bank.findIndex((w, k) => w === a && !placed.some((p, j) => p === k && j !== i)); locked[i] = true; });
+      refresh(); slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
+      finishQuestion('fail'); return;
+    }
+    wrong.forEach((w, i) => { if (w) slots[i].classList.add('bad'); else { locked[i] = true; slots[i].classList.add('ok'); } });
+    $('#msg').textContent = '💡 คำใบ้: ' + (q.hint || 'ลองดูประธานอีกครั้งนะ');
+    setTimeout(() => {                                       // ช่องที่ผิดเด้งกลับ ช่องที่ถูกค้างไว้
+      wrong.forEach((w, i) => { if (w) { placed[i] = null; slots[i].classList.remove('bad'); } });
+      refresh();
+    }, 900);
+  };
+}
+
+/* =====================================================================
+   10) จบข้อ: ให้คะแนน + แสดงเฉลยแบบอ่อนโยน
+   ===================================================================== */
+function finishQuestion(result) {
+  if (S.locked) return;
+  S.locked = true; stopTimer(); clearDanger();
+  const L = LEVELS[S.level], q = L.questions[S.q], st = S.stats[S.level];
+  let pts = 0, cls = 'good', title;
+  if (result === 'first')       { pts = CONFIG.pointsFirst;  st.first++;  S.marks[S.q] = 'done'; title = pick(['🎉 เยี่ยมมาก!', '🌟 ถูกต้อง!', '👏 สุดยอด!', '😄 เก่งจัง!']); Sound.sfx.ding(); }
+  else if (result === 'second') { pts = CONFIG.pointsSecond; st.second++; S.marks[S.q] = 'half'; title = '💪 ทำได้แล้ว! แก้ไขได้ถูกต้อง'; Sound.sfx.ding(); }
+  else {
+    st.miss++; S.marks[S.q] = 'miss'; cls = 'soft';
+    title = result === 'timeout' ? '💥 บึ้ม! หมดเวลา ไม่เป็นไรนะ มาดูคำตอบด้วยกัน' : '🙂 ใกล้แล้ว! มาดูคำตอบด้วยกัน';
+    S.missed.push({ full: fullOf(L, q), why: q.why });
+  }
+  S.coins += pts; $('#coins').textContent = S.coins; updateHud();
+  const last = S.q === L.questions.length - 1;
+  const full = fullOf(L, q);
+  $('#msg').textContent = '';
+  const box = $('#fbBox');
+  box.innerHTML = `<div class="fb ${cls}">
+      <div class="ft">${title}${pts ? ` &nbsp;+${pts} ⭐` : ''}</div>
+      <div class="ff">✅ ${full}</div>
+      <div class="fw">${q.why || ''}</div>
+      <div class="actions">
+        ${'speechSynthesis' in window ? '<button class="btn3d alt" id="sayFull">🔊 ฟังประโยคที่ถูก</button>' : ''}
+        <button class="btn3d orange" id="nextBtn">${last ? 'จบด่าน ➜' : 'ข้อต่อไป ➜'}</button>
+      </div></div>`;
+  const sf = $('#sayFull'); if (sf) sf.onclick = () => speak(full.replace(/\(.*?\)/g, ''));
+  $('#nextBtn').onclick = () => { speechSynthesis && speechSynthesis.cancel && speechSynthesis.cancel(); nextQuestion(); };
+  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const ch = document.querySelector('.chips'); // (เผื่อขยายภายหลัง)
+}
+function nextQuestion() {
+  const L = LEVELS[S.level];
+  if (S.q < L.questions.length - 1) { S.q++; startQuestion(); }
+  else showLevelDone();
+}
+
+/* =====================================================================
+   11) สรุปด่าน / สรุปเกม (ไม่มีอันดับ ไม่มี Game Over – ชมเชยทุกคน)
+   ===================================================================== */
+function starsFor(pct) { return pct >= 0.75 ? 3 : pct >= 0.45 ? 2 : 1; }   // อย่างน้อย 1 ดาวเสมอ
+function showLevelDone() {
+  const L = LEVELS[S.level], st = S.stats[S.level], n = L.questions.length;
+  const pct = (st.first * CONFIG.pointsFirst + st.second * CONFIG.pointsSecond) / (n * CONFIG.pointsFirst);
+  const stars = starsFor(pct), isLast = S.level === LEVELS.length - 1;
+  Sound.sfx.win(); confetti(18);
+  screen.innerHTML = `<div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">ผ่าน${L.title.split(':')[0]}แล้ว! 🎉</h2>
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <div class="stats">
+        <div class="stat">✅ ถูกทันที ${st.first}</div>
+        <div class="stat">💪 แก้ได้ ${st.second}</div>
+        <div class="stat">📖 ได้เรียนรู้ ${st.miss}</div>
+      </div>
+      <p class="sub" id="lvName"></p>
+      <button class="btn3d big" id="goNext">${isLast ? 'ดูผลรวม 🏆' : 'ไปด่านต่อไป ➜'}</button></div>`;
+  $('#lvName').textContent = `เก่งมาก ${S.name}! ${pick(['พร้อมไปต่อแล้ว 🚀', 'ทำได้ดีเลย 😄', 'สู้ต่อไปนะ 💪'])}`;
+  $('#goNext').onclick = () => { if (isLast) showFinal(); else { S.level++; showIntro(); } };
+}
+function showFinal() {
+  const maxPts = totalQ() * CONFIG.pointsFirst, pct = S.coins / maxPts, stars = starsFor(pct);
+  const msg = pct >= 0.75 ? 'สุดยอดนักช้อปไวยากรณ์! 🏆' : pct >= 0.45 ? 'ทำได้ดีมาก! อีกนิดเดียวก็เป๊ะแล้ว 😄' : 'เก่งมากที่พยายาม! เล่นอีกรอบจะเก่งขึ้นแน่นอน 💪';
+  Sound.sfx.win(); confetti(40);
+  screen.innerHTML = `<div class="card">
+      <div class="avatar3d">${S.char.emoji}</div>
+      <h1 class="title">Negative Mart Master!</h1>
+      <p class="sub" id="finName"></p>
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <div class="stats"><div class="stat">⭐ ${S.coins} / ${maxPts}</div></div>
+      <p class="sub"><b>${msg}</b></p>
+      ${S.missed.length ? `<b>📖 ทบทวนก่อนกลับบ้านนะ</b><div class="review">${S.missed.map(m => `<div>✅ ${m.full}<br><small>${m.why || ''}</small></div>`).join('')}</div>` : '<p class="sub">🎊 ตอบถูกครบทุกข้อเลย!</p>'}
+      <div class="actions">
+        <button class="btn3d big" id="again">เล่นอีกครั้ง 🔁</button>
+        <button class="btn3d big pink" id="home">เปลี่ยนตัวละคร 🏠</button>
+      </div></div>`;
+  setName($('#finName'), `${S.char.emoji} ${S.name}`);
+  $('#again').onclick = () => { S.level = 0; S.coins = 0; S.stats = []; S.missed = []; showIntro(); };
+  $('#home').onclick = () => { Sound.stop(); showStart(); };
+}
+function confetti(n) {                                   // ฝนอีโมจิเฉลิมฉลอง
+  const em = ['🎉', '⭐', '🍎', '🍪', '🧃', '✨', '🥛'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div'); c.className = 'confetti'; c.textContent = pick(em);
+    c.style.left = Math.random() * 100 + 'vw'; c.style.animationDuration = 2.5 + Math.random() * 2.5 + 's';
+    c.style.animationDelay = Math.random() * 1.2 + 's'; document.body.appendChild(c);
+    setTimeout(() => c.remove(), 6500);
+  }
+}
+
+/* =====================================================================
+   12) ปุ่มเปิด/ปิดเพลง + เริ่มเกม
+   ===================================================================== */
+$('#musicBtn').onclick = () => { Sound.init(); $('#musicBtn').textContent = Sound.toggle() ? '🎵' : '🔇'; };
+showStart();
+</script>
+</body>
+</html>
