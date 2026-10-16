@@ -16,7 +16,8 @@
     - Every question has a "hint" (kids can press the 💡 Hint button) and a "why" (shown after answering).
 
   LEADERBOARD: scores are saved in the browser of the device being used (localStorage).
-    Students on the same device/browser share one board. Use "Clear scores" on the board screen to reset.
+    By default students on the same device/browser share one board. To share ONE board across all devices,
+    follow backend/SETUP.md and paste the Web App URL into CONFIG.backendUrl.
 =====================================================================
 -->
 <style>
@@ -258,7 +259,8 @@ const CONFIG = {
   pointsFirst: 10,    // points for a correct answer on the first try
   pointsSecond: 5,    // points for a correct answer on the second try (a second chance!)
   boardSize: 10,      // how many players to show on the leaderboard
-  storageKey: 'negativeMartScores_en'   // change this if you want a fresh board for another class
+  storageKey: 'negativeMartScores_en',  // change this if you want a fresh board for another class
+  backendUrl: ''   // paste your Google Apps Script Web App URL here to share one leaderboard across ALL devices (see backend/SETUP.md). Leave '' = scores stay on this device.
 };
 
 // Characters to choose from (you can add more, e.g. {id:'dog', emoji:'🐶', name:'Dog'})
@@ -530,8 +532,13 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const totalQ = () => LEVELS.reduce((n, L) => n + L.questions.length, 0);
 
 /* =====================================================================
-   5) LEADERBOARD (saved on this device with localStorage)
+   5) LEADERBOARD
+      - Always saved on this device (localStorage).
+      - If CONFIG.backendUrl is set, scores are ALSO sent to a Google Sheet and the board
+        shows everyone's scores (shared by the whole class). If the internet/backend fails,
+        the game quietly falls back to this device's scores.
    ===================================================================== */
+const boardState = { remote: null };      // latest scores downloaded from the Google Sheet (or null)
 function loadScores() {
   try { return JSON.parse(localStorage.getItem(CONFIG.storageKey)) || []; } catch (e) { return []; }
 }
@@ -540,24 +547,45 @@ function saveScores(list) {
 }
 const sortScores = list => list.slice().sort((a, b) => b.coins - a.coins || a.id - b.id);
 
-// save the finished game, return { id, rank, total }
+// save the finished game on this device, return the new entry
 function recordScore() {
   const entry = { id: Date.now(), name: S.name, emoji: S.char.emoji, coins: S.coins };
   const list = loadScores(); list.push(entry); saveScores(list);
+  return entry;
+}
+// send one score to the Google Sheet (fire and forget; no-cors + text/plain avoids browser preflight problems)
+async function sendRemote(entry) {
+  if (!CONFIG.backendUrl) return;
+  try {
+    await fetch(CONFIG.backendUrl, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(entry) });
+  } catch (e) {}
+}
+// download all scores from the Google Sheet (returns an array, or null if not available)
+async function fetchRemote() {
+  if (!CONFIG.backendUrl) return null;
+  try {
+    const r = await fetch(CONFIG.backendUrl + (CONFIG.backendUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+    const d = await r.json();
+    return Array.isArray(d.scores) ? d.scores : null;
+  } catch (e) { return null; }
+}
+const currentList = () => boardState.remote || loadScores();
+function rankInfo(id, list) {
   const sorted = sortScores(list);
-  return { id: entry.id, rank: sorted.findIndex(e => e.id === entry.id) + 1, total: sorted.length };
+  return { rank: sorted.findIndex(e => e.id === id) + 1, total: sorted.length };
 }
 // HTML of the leaderboard card. highlightId = the entry to highlight as "you"
 function boardHTML(highlightId) {
-  const sorted = sortScores(loadScores()), medals = ['🥇', '🥈', '🥉'];
+  const list = currentList(), shared = !!boardState.remote;
+  const sorted = sortScores(list), medals = ['🥇', '🥈', '🥉'];
   const row = (e, i) => `<li class="${e.id === highlightId ? 'me' : ''}"><span class="rk">${medals[i] || (i + 1)}</span>
-      <span class="bn">${e.emoji} ${esc(e.name)}${e.id === highlightId ? ' (you!)' : ''}</span><span class="bs">⭐ ${e.coins}</span></li>`;
+      <span class="bn">${esc(e.emoji || '')} ${esc(e.name)}${e.id === highlightId ? ' (you!)' : ''}</span><span class="bs">⭐ ${esc(e.coins)}</span></li>`;
   let rows = sorted.slice(0, CONFIG.boardSize).map(row).join('');
   const myIdx = sorted.findIndex(e => e.id === highlightId);
   if (myIdx >= CONFIG.boardSize) rows += `<li style="justify-content:center;box-shadow:none;background:none">⋮</li>` + row(sorted[myIdx], myIdx);
   return `<div class="board"><h3>🏆 Hall of Fame</h3>
     ${sorted.length ? `<ol>${rows}</ol>` : '<div class="empty">No scores yet – be the first star! ⭐</div>'}
-    <div class="note">Scores are saved on this device. Everyone is a star – try to beat your own score! 💪</div></div>`;
+    <div class="note">${shared ? '🌐 Scores from the whole class.' : 'Scores are saved on this device.'} Everyone is a star – try to beat your own score! 💪</div></div>`;
 }
 
 /* =====================================================================
@@ -603,13 +631,22 @@ function showStart() {
 function showBoard() {
   screen.innerHTML = `<div class="card">
       <h2 class="title" style="font-size:clamp(24px,5vw,38px)">🏆 Leaderboard</h2>
-      ${boardHTML(null)}
+      <div id="boardBox">${boardHTML(null)}</div>
       <div class="actions">
         <button class="btn3d" id="backBtn">⬅ Back</button>
-        <button class="btn3d small pink" id="clearBtn">Clear scores (teacher)</button>
+        ${CONFIG.backendUrl ? '' : '<button class="btn3d small pink" id="clearBtn">Clear scores (teacher)</button>'}
       </div></div>`;
   $('#backBtn').onclick = showStart;
-  $('#clearBtn').onclick = () => { if (confirm('Delete ALL saved scores on this device?')) { saveScores([]); showBoard(); } };
+  const cb = $('#clearBtn');
+  if (cb) cb.onclick = () => { if (confirm('Delete ALL saved scores on this device?')) { saveScores([]); showBoard(); } };
+  if (CONFIG.backendUrl) {                                   // load the shared class scores
+    $('#boardBox').innerHTML = '<div class="board"><div class="empty">Loading class scores… ⏳</div></div>';
+    fetchRemote().then(list => {
+      if (!$('#boardBox')) return;
+      boardState.remote = list;
+      $('#boardBox').innerHTML = boardHTML(null);
+    });
+  }
 }
 
 /* =====================================================================
@@ -906,7 +943,9 @@ function showLevelDone() {
 function showFinal() {
   const maxPts = totalQ() * CONFIG.pointsFirst, pct = S.coins / maxPts, stars = starsFor(pct);
   const msg = pct >= 0.75 ? 'Super Grammar Shopper! 🏆' : pct >= 0.45 ? 'Great work! Just a little more practice 😄' : 'Great effort! Play again and you will get even better 💪';
-  const me = recordScore();                                   // save to the leaderboard
+  const entry = recordScore();                                // save on this device
+  boardState.remote = null;
+  const me = rankInfo(entry.id, loadScores());
   Sound.sfx.win(); confetti(40);
   screen.innerHTML = `<div class="card">
       <div class="avatar3d">${S.char.emoji}</div>
@@ -914,9 +953,9 @@ function showFinal() {
       <p class="sub" id="finName"></p>
       <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
       <div class="stats"><div class="stat">⭐ ${S.coins} / ${maxPts}</div></div>
-      <div class="yourrank">🏅 You are #${me.rank} of ${me.total}</div>
+      <div class="yourrank" id="rankBox">🏅 You are #${me.rank} of ${me.total}</div>
       <p class="sub"><b>${msg}</b></p>
-      ${boardHTML(me.id)}
+      <div id="boardBox">${boardHTML(entry.id)}</div>
       ${S.missed.length ? `<b>📖 Quick review before you go</b><div class="review">${S.missed.map(m => `<div>✅ ${m.full}<br><small>${m.why || ''}</small></div>`).join('')}</div>` : '<p class="sub">🎊 You answered everything correctly!</p>'}
       <div class="actions">
         <button class="btn3d big" id="again">Play again 🔁</button>
@@ -925,6 +964,19 @@ function showFinal() {
   $('#finName').textContent = `${S.char.emoji} ${S.name}`;
   $('#again').onclick = () => { S.level = 0; S.coins = 0; S.stats = []; S.missed = []; showIntro(); };
   $('#home').onclick = () => { Sound.stop(); showStart(); };
+  if (CONFIG.backendUrl) {                                    // send to the class Google Sheet, then show the class board
+    $('#boardBox').innerHTML = '<div class="board"><div class="empty">Sending your score… ⏳</div></div>';
+    sendRemote(entry).then(fetchRemote).then(list => {
+      if (!$('#boardBox')) return;
+      if (list) {
+        if (!list.some(e => e.id === entry.id)) list.push(entry);   // in case the sheet is a moment behind
+        boardState.remote = list;
+        const r = rankInfo(entry.id, list);
+        $('#rankBox').textContent = `🏅 You are #${r.rank} of ${r.total}`;
+      }
+      $('#boardBox').innerHTML = boardHTML(entry.id);
+    });
+  }
 }
 function confetti(n) {                                   // emoji rain
   const em = ['🎉', '⭐', '🍎', '🍪', '🧃', '✨', '🥛'];
