@@ -3,23 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Negative Mart – Present Simple Negative</title>
+<title>Negative Mart – Present Simple Negative (ไทย)</title>
 <!--
 =====================================================================
-  🛒 NEGATIVE MART  –  เกมทบทวน Present Simple (Negative Statement)
-  สำหรับ ม.1  |  ไฟล์เดียว เปิดได้ทันทีบน PC / มือถือ ไม่ต้องใช้อินเทอร์เน็ต*
-  (*เสียงอ่านประโยคใช้เสียงในเครื่องของเบราว์เซอร์ / ถ้าเครื่องไม่มีเสียงอังกฤษ ปุ่มอาจไม่ดัง)
+  🛒 NEGATIVE MART (เวอร์ชันภาษาไทย) – เกมทบทวน Present Simple Negative สำหรับ ม.1
+  ไฟล์เดียว เปิดได้ทันทีบน PC / มือถือ ไม่ต้องใช้อินเทอร์เน็ต
 
-  วิธีแก้ไขโจทย์:  เลื่อนลงไปที่ <script> ส่วน "1) CONFIG" และ "2) LEVELS"
-    - เปลี่ยนเวลาต่อข้อ  ->  CONFIG.seconds
-    - แก้/เพิ่ม/ลบโจทย์   ->  แก้ใน array questions ของแต่ละด่าน (ด่านละ 7 ข้อ หรือกี่ข้อก็ได้)
+  วิธีแก้ไขโจทย์ (สำหรับครู):
+    เลื่อนลงไปที่ <script> ส่วน "1) CONFIG" และ "2) LEVELS"
+    - เปลี่ยนเวลาต่อข้อ        ->  CONFIG.seconds
+    - แก้/เพิ่ม/ลบโจทย์         ->  แก้ใน array questions ของแต่ละด่าน
+    - ทุกข้อมี hint (คำใบ้ ปุ่ม 💡) และ why (เหตุผลหลังตอบ)
+
+  ตารางลำดับคะแนน: ปกติเก็บในเบราว์เซอร์ของเครื่องที่เล่น (localStorage)
+    ถ้าอยากให้ทั้งห้องเห็นตารางเดียวกัน ให้ทำตาม backend/SETUP.md
+    แล้วนำ Web App URL มาวางที่ CONFIG.backendUrl
 =====================================================================
 -->
 <style>
 :root{
   --ink:#3a2f5b; --pink:#ff6b9d; --pinkd:#d9477c; --teal:#2ec4b6; --teald:#1f9a8f;
   --orange:#ff9f1c; --oranged:#d97f00; --purple:#7b5cff; --purpled:#5a3fd6;
-  --red:#ff4d4d; --green:#3ecf7a; --greend:#25a25a;
+  --red:#ff4d4d; --green:#3ecf7a; --greend:#25a25a; --yellow:#ffd23f;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
@@ -28,7 +33,7 @@ body{
   color:var(--ink); overflow-x:hidden; user-select:none; -webkit-user-select:none;
 }
 
-/* ---------- ฉากหลัง 3D (CSS 3D transforms ล้วน) ---------- */
+/* ---------- 3D background (pure CSS 3D transforms) ---------- */
 .world{position:fixed;inset:0;perspective:900px;overflow:hidden;z-index:0;
   background:linear-gradient(#ffe3a3 0%,#ffc4dd 55%,#cfe8ff 100%)}
 .shelf{position:absolute;top:8%;width:24vw;max-width:260px;height:64%;
@@ -44,7 +49,7 @@ body{
   transform-style:preserve-3d;filter:drop-shadow(0 10px 6px rgba(0,0,0,.18))}
 @keyframes drift{0%,100%{transform:translateY(0) rotateY(0)}50%{transform:translateY(-26px) rotateY(180deg)}}
 
-/* ---------- โครงหน้า ---------- */
+/* ---------- layout ---------- */
 #screen{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:10px 12px 28px;min-height:100dvh;
   display:flex;flex-direction:column;justify-content:center}
 .vignette{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;
@@ -52,7 +57,7 @@ body{
 .danger-on .vignette{opacity:1;animation:pulseV .5s infinite alternate}
 @keyframes pulseV{from{opacity:.35}to{opacity:1}}
 
-/* ---------- ปุ่ม 3D ---------- */
+/* ---------- 3D buttons ---------- */
 .btn3d{--c:var(--teal);--cd:var(--teald);font:inherit;font-weight:800;font-size:clamp(16px,2.6vw,20px);color:#fff;
   background:var(--c);border:0;border-radius:18px;padding:13px 24px;cursor:pointer;
   box-shadow:0 7px 0 var(--cd),0 14px 20px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;
@@ -62,20 +67,21 @@ body{
 .btn3d.alt{--c:var(--purple);--cd:var(--purpled)}
 .btn3d.pink{--c:var(--pink);--cd:var(--pinkd)}
 .btn3d.orange{--c:var(--orange);--cd:var(--oranged)}
+.btn3d.yellow{--c:var(--yellow);--cd:#d9a900;color:#6b4a00}
 .btn3d:disabled{opacity:.55;cursor:not-allowed}
 .btn3d.big{font-size:clamp(20px,3.4vw,26px);padding:15px 38px}
+.btn3d.small{font-size:15px;padding:8px 14px;border-radius:14px;box-shadow:0 5px 0 var(--cd),0 10px 14px rgba(0,0,0,.2)}
 
 #musicBtn{position:fixed;top:10px;right:10px;z-index:20;width:48px;height:48px;border-radius:50%;padding:0;font-size:22px}
 
-/* ---------- การ์ด / แท็บเล็ต ---------- */
+/* ---------- cards / tablet ---------- */
 .card{background:#fff;border-radius:26px;padding:clamp(16px,3vw,28px);
   box-shadow:0 10px 0 #e6d9ff,0 22px 40px rgba(60,30,120,.25);text-align:center}
 .title{font-size:clamp(28px,6vw,48px);font-weight:900;margin:0;
-  background:linear-gradient(90deg,var(--pink),var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent;
-  text-shadow:0 6px 0 rgba(0,0,0,.06)}
+  background:linear-gradient(90deg,var(--pink),var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{margin:6px 0 14px;font-weight:700;opacity:.8}
 
-/* เลือกตัวละคร */
+/* character select */
 .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;perspective:700px;margin:12px 0}
 .char{background:linear-gradient(#fff,#f3ecff);border:4px solid #e0d4ff;border-radius:20px;padding:10px 4px;cursor:pointer;
   transition:transform .25s;transform-style:preserve-3d;box-shadow:0 6px 0 #d6c8ff}
@@ -91,7 +97,6 @@ body{
 .shake{animation:shake .4s}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 
-/* ตัวละคร 3D ลอยได้ */
 .avatar3d{display:inline-block;font-size:clamp(54px,12vw,86px);transform-style:preserve-3d;animation:float3d 3.2s ease-in-out infinite;
   filter:drop-shadow(0 16px 8px rgba(0,0,0,.2))}
 @keyframes float3d{0%,100%{transform:translateY(0) rotateY(-18deg)}50%{transform:translateY(-12px) rotateY(18deg)}}
@@ -108,7 +113,7 @@ body{
 .dots i.done{background:var(--green)} .dots i.half{background:var(--orange)} .dots i.miss{background:#b9aee0} .dots i.now{background:var(--pink);transform:scale(1.35)}
 .coins{font-size:clamp(14px,3vw,18px);white-space:nowrap}
 
-/* ตัวจับเวลา + ระเบิด */
+/* timer + bomb */
 .timer{position:relative;height:34px;background:rgba(255,255,255,.9);border-radius:20px;margin:6px 6px 14px;box-shadow:inset 0 3px 6px rgba(0,0,0,.15)}
 .timer .fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:20px;background:linear-gradient(90deg,#3ecf7a,#ffd23f);transition:width .1s linear}
 #bomb{position:absolute;top:50%;left:100%;font-size:34px;transform:translate(-50%,-50%);z-index:2;line-height:1}
@@ -127,7 +132,7 @@ body{
 .danger #count{display:flex;animation:pop .5s infinite alternate}
 @keyframes pop{from{transform:scale(.9)}to{transform:scale(1.15)}}
 
-/* แท็บเล็ต */
+/* tablet */
 .tabwrap{position:relative;perspective:1200px}
 .tablet{background:#fff;border:10px solid #4a4e69;border-radius:30px;padding:clamp(14px,3vw,26px);
   box-shadow:0 12px 0 #2b2d42,0 26px 44px rgba(0,0,0,.3);transform:rotateX(2deg);transform-origin:bottom;
@@ -136,10 +141,13 @@ body{
 @keyframes tabshake{0%,100%{transform:rotateX(2deg) translateX(0)}50%{transform:rotateX(2deg) translateX(-3px)}}
 .tag{display:inline-block;background:var(--orange);color:#fff;font-weight:900;border-radius:12px;padding:3px 12px;font-size:14px;
   box-shadow:0 3px 0 var(--oranged)}
-.speak{position:absolute;top:10px;right:12px;font-size:16px;padding:8px 14px;border-radius:14px}
-.prompt{font-size:clamp(22px,5vw,34px);font-weight:900;margin:16px 0 4px;line-height:1.35}
-.thai{font-size:clamp(13px,2.8vw,16px);opacity:.75;font-weight:700;margin:2px 0 14px}
+.tools{position:absolute;top:8px;right:10px;display:flex;gap:8px}
+.prompt{font-size:clamp(22px,5vw,34px);font-weight:900;margin:22px 0 4px;line-height:1.35}
+.task{font-size:clamp(13px,2.8vw,16px);opacity:.75;font-weight:700;margin:2px 0 14px}
 .blank{display:inline-block;min-width:3.2em;border-bottom:5px dashed var(--purple);color:var(--purple);margin:0 4px}
+.hintbox{display:none;margin:6px auto 0;max-width:560px;background:#fff7cc;border:3px solid var(--yellow);border-radius:16px;
+  padding:8px 14px;font-weight:800;color:#6b4a00;font-size:clamp(14px,3vw,17px);animation:slideup .3s}
+.hintbox.show{display:block}
 
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:10px}
 .choice{font:inherit;font-weight:800;font-size:clamp(17px,3.6vw,24px);padding:16px 12px;border-radius:20px;border:0;cursor:pointer;
@@ -173,7 +181,7 @@ body{
 .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 .msg{min-height:24px;font-weight:800;color:var(--purpled);margin-top:8px}
 
-/* ผลหลังตอบ */
+/* feedback */
 .fb{margin-top:16px;border-radius:20px;padding:14px;text-align:center;animation:slideup .35s}
 @keyframes slideup{from{transform:translateY(20px);opacity:0}}
 .fb.good{background:#d9f9e6;border:3px solid var(--green)}
@@ -182,12 +190,12 @@ body{
 .fb .ff{font-size:clamp(17px,3.4vw,22px);font-weight:800;margin:6px 0;color:var(--purpled)}
 .fb .fw{font-size:clamp(13px,2.8vw,16px);font-weight:700;opacity:.85;line-height:1.5}
 
-/* ระเบิด */
+/* explosion */
 .boom{position:fixed;left:50%;top:40%;font-size:min(60vw,320px);transform:translate(-50%,-50%) scale(0);z-index:30;pointer-events:none;
   animation:boom .9s ease-out forwards}
 @keyframes boom{30%{transform:translate(-50%,-50%) scale(1.1) rotate(8deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.6) rotate(-6deg);opacity:0}}
 
-/* หน้าแนะนำด่าน */
+/* intro / results */
 .rule{display:grid;gap:8px;text-align:left;background:#f4efff;border-radius:18px;padding:12px 16px;margin:12px 0;font-weight:700;font-size:clamp(14px,3vw,17px)}
 .rule b{color:var(--purpled)}
 .stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}
@@ -197,6 +205,21 @@ body{
 .review div{background:#fff7e6;border-left:6px solid var(--orange);border-radius:12px;padding:8px 12px;margin:8px 0;font-weight:700;font-size:15px}
 .confetti{position:fixed;top:-40px;font-size:28px;z-index:25;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+
+/* leaderboard */
+.board{background:linear-gradient(#fffbe8,#fff1c9);border:4px solid var(--yellow);border-radius:22px;padding:12px 14px;margin:14px 0;text-align:left}
+.board h3{margin:0 0 6px;text-align:center;font-size:clamp(20px,4vw,26px)}
+.board ol{list-style:none;margin:0;padding:0}
+.board li{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:7px 12px;margin:6px 0;font-weight:800;
+  box-shadow:0 3px 0 #ecd98a;font-size:clamp(14px,3vw,18px)}
+.board li .rk{min-width:2.2em;text-align:center;font-size:1.2em}
+.board li .bn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board li .bs{white-space:nowrap}
+.board li.me{background:#e4f9ee;box-shadow:0 3px 0 var(--greend);outline:3px solid var(--green)}
+.board .empty{text-align:center;font-weight:700;opacity:.7;padding:10px}
+.board .note{text-align:center;font-size:13px;font-weight:700;opacity:.7;margin-top:8px}
+.yourrank{display:inline-block;background:var(--green);color:#fff;font-weight:900;border-radius:16px;padding:6px 18px;
+  font-size:clamp(16px,3.4vw,22px);box-shadow:0 4px 0 var(--greend)}
 
 @media (max-width:600px){
   .shelf{width:16vw}
@@ -209,7 +232,7 @@ body{
 </head>
 <body>
 
-<!-- ฉากหลัง 3D -->
+<!-- 3D background -->
 <div class="world" aria-hidden="true">
   <div class="shelf left"><div>🥛🧃🥛</div><div>🍞🥐🍞</div><div>🍎🍌🍎</div><div>🍫🍪🍫</div></div>
   <div class="shelf right"><div>🥜🍿🥜</div><div>🧀🥚🧀</div><div>🍓🍇🍓</div><div>🥤🧋🥤</div></div>
@@ -233,8 +256,11 @@ body{
 const CONFIG = {
   seconds: 15,        // เวลาต่อข้อ (วินาที)
   warnAt: 5,          // เริ่มเตือนระเบิดเมื่อเหลือกี่วินาที
-  pointsFirst: 10,    // ตอบถูกครั้งแรก
-  pointsSecond: 5     // ตอบถูกในครั้งที่ 2 (ให้โอกาสแก้ตัว ไม่ให้รู้สึกพ่ายแพ้)
+  pointsFirst: 10,    // ตอบถูกครั้งแรก ได้กี่คะแนน
+  pointsSecond: 5,    // ตอบถูกในครั้งที่ 2 ได้กี่คะแนน (ให้โอกาสแก้ตัว ไม่ให้รู้สึกพ่ายแพ้)
+  boardSize: 10,      // แสดงกี่อันดับบนตารางคะแนน
+  storageKey: 'negativeMartScores_th',  // เปลี่ยนชื่อนี้ถ้าอยากเริ่มตารางใหม่สำหรับห้องอื่น
+  backendUrl: ''      // วาง URL ของ Google Apps Script ตรงนี้ เพื่อให้ตารางคะแนนรวมทุกเครื่อง (ดู backend/SETUP.md) ถ้าเว้นว่าง = เก็บคะแนนในเครื่องนั้นๆ
 };
 
 // ตัวละครให้เลือก (เพิ่มได้ เช่น {id:'dog', emoji:'🐶', name:'หมา'})
@@ -248,25 +274,26 @@ const CHARACTERS = [
 /* =====================================================================
    2) LEVELS – ข้อมูลโจทย์ทั้งหมด (แก้ตรงนี้ได้เลย!)
    ---------------------------------------------------------------------
+   ทุกข้อมี hint (คำใบ้ ที่เด็กกดปุ่ม 💡 ดูได้) และ why (เหตุผล แสดงหลังตอบ)
+
    ด่าน 1  type:'choice'  คลิกเลือกคำตอบ
      { prompt:"ประโยค/คำถาม (ใช้ ___ แทนช่องว่างได้)",
-       th:"คำอธิบายภาษาไทยใต้โจทย์",
+       task:"คำสั่งภาษาไทยใต้โจทย์",
        choices:["ตัวเลือก1","ตัวเลือก2",...],
        answer: 1,                 // เลขตัวเลือกที่ถูก (เริ่มนับที่ 0)
        full:"ประโยคเต็มที่ถูก",     // (ไม่ใส่ก็ได้ ถ้าโจทย์มี ___ ระบบเติมให้เอง)
-       say:"ข้อความที่ให้ปุ่มลำโพงอ่าน", // (ไม่ใส่ก็ได้)
-       why:"เหตุผลภาษาไทย" }
+       say:"ข้อความที่ให้ปุ่ม 🔊 อ่าน", // (ไม่ใส่ก็ได้)
+       hint:"คำใบ้", why:"เหตุผลภาษาไทย" }
 
    ด่าน 2  type:'type'    เติมคำสั้นๆ
      { s:"My brother ___ drink milk.",   // ___ = ช่องว่าง (มีได้ 1 ช่อง)
-       th:"คำสั่งภาษาไทย",
+       task:"คำสั่งภาษาไทย",
        answers:["doesn't","does not"],  // คำตอบที่ยอมรับได้ทั้งหมด (ไม่สนตัวพิมพ์เล็ก/ใหญ่)
-       hint:"คำใบ้ที่จะโชว์เมื่อตอบผิดครั้งแรก",
-       why:"เหตุผล" }
+       hint:"...", why:"..." }
 
    ด่าน 3  type:'drag'    ลากคำไปเติม
      { s:"He {0} {1} milk.",             // {0} {1} = ช่องว่างลำดับที่ 0, 1 ...
-       th:"คำสั่งภาษาไทย",
+       task:"คำสั่งภาษาไทย",
        answers:["doesn't","like"],      // คำที่ถูกของแต่ละช่อง (ตามลำดับ)
        bank:["doesn't","don't","like","likes"], // คำทั้งหมดที่ให้ลาก (ใส่ตัวหลอกได้)
        hint:"...", why:"..." }
@@ -282,30 +309,37 @@ const LEVELS = [
       "<b>Verb to be:</b> I am not • He/She/It is not (isn't) • You/We/They are not (aren't)"
     ],
     questions:[
-      { prompt:"My customer is a girl. She ___ want chocolate.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+      { prompt:"My customer is a girl. She ___ want chocolate.", task:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
         choices:["don't","doesn't","isn't"], answer:1,
+        hint:"She = he / she / it ลองนึกดูว่า She ใช้ don't หรือ doesn't",
         why:"She เป็นเอกพจน์ (he/she/it) จึงใช้ doesn't + V.1 (want)" },
-      { prompt:"They ___ eat dairy.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+      { prompt:"They ___ eat dairy.", task:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
         choices:["don't","doesn't","aren't"], answer:0,
+        hint:"They ใช้คู่กับ don't และ eat เป็นกริยาแท้ จึงไม่ใช้ aren't",
         why:"They ใช้ don't + V.1 (eat) – ไม่ใช้ aren't เพราะ eat เป็นกริยาแท้" },
-      { prompt:"He doesn't eat nuts!", th:"ลูกค้าบอกแบบนี้ ขนมแบบไหนที่ต้อง \"หลีกเลี่ยง\" (Avoid)?",
+      { prompt:"He doesn't eat nuts!", task:"ลูกค้าบอกแบบนี้ ขนมแบบไหนที่ต้อง \"หลีกเลี่ยง\" (Avoid)?",
         choices:["This bar contains nuts.","This bar doesn't contain nuts."], answer:0,
         full:"This bar contains nuts. (ห้ามหยิบ!)",
         say:"He doesn't eat nuts! Which snack should you avoid?",
+        hint:"doesn't eat nuts = กินถั่วไม่ได้ ให้เลี่ยงขนมที่ \"มีถั่ว\" (contains nuts)",
         why:"doesn't eat nuts = ไม่กินถั่ว จึงต้องเลี่ยงขนมที่ contains nuts (มีถั่ว)" },
-      { prompt:"Which label on the rice cake is correct?", th:"ป้ายบนชั้นวางอันไหนเขียนถูกไวยากรณ์?",
+      { prompt:"Which label on the rice cake is correct?", task:"ป้ายบนชั้นวางอันไหนเขียนถูกไวยากรณ์?",
         choices:["It don't have nuts.","It doesn't have nuts.","It doesn't has nuts."], answer:1,
         full:"It doesn't have nuts.",
+        hint:"ดูประธาน It ก่อน แล้วดูว่าหลัง doesn't ใช้ have หรือ has",
         why:"It ใช้ doesn't และกริยาต้องกลับเป็นรูปเดิม have (ไม่ใช่ has)" },
-      { prompt:"These apples ___ fresh.", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+      { prompt:"These apples ___ fresh.", task:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
         choices:["isn't","aren't","don't"], answer:1,
+        hint:"These apples = they และหลังช่องว่างเป็นคุณศัพท์ (fresh) ให้ใช้ Verb to be",
         why:"These apples เป็นพหูพจน์ ใช้ are not = aren't (Verb to be ไม่ใช้ don't)" },
-      { prompt:"Which sentence is correct?", th:"เลือกประโยคปฏิเสธที่ถูกต้อง",
+      { prompt:"Which sentence is correct?", task:"เลือกประโยคปฏิเสธที่ถูกต้อง",
         choices:["He doesn't likes sugar.","He doesn't like sugar.","He don't like sugar."], answer:1,
         full:"He doesn't like sugar.",
+        hint:"หลัง doesn't ให้ตัด -s ออกจากกริยา และ He คู่กับ doesn't",
         why:"หลัง doesn't ต้องใช้ V.1 รูปเดิม → like (ตัด -s ออก!)" },
-      { prompt:"I ___ a cashier. I am a customer!", th:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
+      { prompt:"I ___ a cashier. I am a customer!", task:"เลือกคำที่ถูกต้องเติมในช่องว่าง",
         choices:["am not","isn't","aren't"], answer:0,
+        hint:"ประธานคือ I ซึ่ง I มี Verb to be เป็นของตัวเองคือ am",
         why:"ประธาน I ใช้ am not (ไม่ใช้ amn't)" }
     ]
   },
@@ -320,26 +354,26 @@ const LEVELS = [
       "หลัง don't / doesn't ใช้ <b>กริยารูปเดิม</b> (ไม่เติม s/es)"
     ],
     questions:[
-      { s:"My brother ___ drink milk.", th:"พิมพ์คำปฏิเสธที่ถูกต้อง (ประธานเป็นเอกพจน์)",
-        answers:["doesn't","does not"], hint:"My brother = He → doesn't",
+      { s:"My brother ___ drink milk.", task:"พิมพ์คำปฏิเสธที่ถูกต้อง (ประธานเป็นเอกพจน์)",
+        answers:["doesn't","does not"], hint:"My brother = He ลองนึกดูว่า He ใช้คำปฏิเสธคำไหน",
         why:"My brother = he จึงใช้ doesn't + V.1 (drink)" },
-      { s:"We ___ buy candy on Monday.", th:"พิมพ์คำปฏิเสธที่ถูกต้อง",
-        answers:["don't","do not"], hint:"We → don't",
+      { s:"We ___ buy candy on Monday.", task:"พิมพ์คำปฏิเสธที่ถูกต้อง",
+        answers:["don't","do not"], hint:"We เป็นพหูพจน์ จำไว้ว่า I / you / we / they → ?",
         why:"We ใช้ don't + V.1 (buy)" },
-      { s:"The milk ___ cold.", th:"พิมพ์คำปฏิเสธ Verb to be (milk = it)",
-        answers:["isn't","is not"], hint:"it → is not (isn't)",
+      { s:"The milk ___ cold.", task:"พิมพ์คำปฏิเสธ Verb to be (milk = it)",
+        answers:["isn't","is not"], hint:"The milk = it Verb to be ของ it คือ is ลองทำให้เป็นปฏิเสธ",
         why:"The milk = it ใช้ is not = isn't (ตามด้วยคุณศัพท์ cold)" },
-      { s:"The cookies ___ sweet.", th:"พิมพ์คำปฏิเสธ Verb to be (cookies = they)",
-        answers:["aren't","are not"], hint:"they → are not (aren't)",
+      { s:"The cookies ___ sweet.", task:"พิมพ์คำปฏิเสธ Verb to be (cookies = they)",
+        answers:["aren't","are not"], hint:"The cookies = they Verb to be ของ they คือ are ลองทำให้เป็นปฏิเสธ",
         why:"The cookies = they ใช้ are not = aren't" },
-      { s:"My mom doesn't ___ (like) coffee.", th:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
-        answers:["like"], hint:"หลัง doesn't ต้องตัด -s → like",
+      { s:"My mom doesn't ___ (like) coffee.", task:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
+        answers:["like"], hint:"หลัง doesn't กริยาไม่เติม -s เขียนรูปเดิมได้เลย",
         why:"หลัง doesn't ใช้ V.1 รูปเดิม → like (ไม่ใช่ likes)" },
-      { s:"I ___ hungry now.", th:"พิมพ์คำปฏิเสธ Verb to be สำหรับ I",
-        answers:["am not"], hint:"I → am not",
+      { s:"I ___ hungry now.", task:"พิมพ์คำปฏิเสธ Verb to be สำหรับ I",
+        answers:["am not"], hint:"I + am แล้วเติม not ต่อท้าย (เขียนเป็น 2 คำ)",
         why:"ประธาน I ใช้ am not (ไม่ย่อเป็น amn't)" },
-      { s:"The pandas don't ___ (eat) meat.", th:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
-        answers:["eat"], hint:"หลัง don't ใช้กริยารูปเดิม → eat",
+      { s:"The pandas don't ___ (eat) meat.", task:"พิมพ์กริยารูปเดิม V.1 ของคำในวงเล็บ",
+        answers:["eat"], hint:"หลัง don't ใช้กริยารูปเดิมตามที่อยู่ในวงเล็บ",
         why:"หลัง don't ใช้ V.1 รูปเดิม → eat" }
     ]
   },
@@ -354,42 +388,42 @@ const LEVELS = [
       "ห้ามใช้ซ้อนกัน เช่น isn't <b>not</b> ❌ – มีคำปฏิเสธคำเดียวพอ"
     ],
     questions:[
-      { s:"He {0} {1} milk.", th:"ลากคำไปเติม 2 ช่อง",
+      { s:"He {0} {1} milk.", task:"ลากคำไปเติม 2 ช่อง",
         answers:["doesn't","like"], bank:["doesn't","don't","like","likes"],
-        hint:"He → doesn't และกริยาต้องไม่เติม s",
+        hint:"He → doesn't แล้วใช้กริยาที่ไม่เติม s",
         why:"He doesn't like milk. – หลัง doesn't ใช้ like ไม่ใช่ likes" },
-      { s:"They {0} {1} soda.", th:"ลากคำไปเติม 2 ช่อง",
+      { s:"They {0} {1} soda.", task:"ลากคำไปเติม 2 ช่อง",
         answers:["don't","want"], bank:["don't","doesn't","want","wants"],
-        hint:"They → don't",
+        hint:"They เป็นพหูพจน์ → don't แล้วตามด้วยกริยารูปเดิม",
         why:"They don't want soda. – They ใช้ don't ไม่ใช่ doesn't" },
-      { s:"This cake {0} fresh.", th:"ลากคำปฏิเสธ Verb to be ไปเติม",
+      { s:"This cake {0} fresh.", task:"ลากคำปฏิเสธ Verb to be ไปเติม",
         answers:["isn't"], bank:["isn't","aren't","don't","not"],
-        hint:"This cake = it → isn't",
+        hint:"This cake = it และ fresh เป็นคุณศัพท์ ให้เลือก Verb to be",
         why:"This cake isn't fresh. – ไม่ต้องใส่ not ซ้ำอีก (isn't not ❌)" },
-      { s:"She {0} {1} pizza.", th:"ลากคำไปเติม 2 ช่อง",
+      { s:"She {0} {1} pizza.", task:"ลากคำไปเติม 2 ช่อง",
         answers:["doesn't","eat"], bank:["doesn't","don't","eat","eats"],
-        hint:"She → doesn't + กริยารูปเดิม",
+        hint:"She → doesn't แล้วใช้กริยาที่ไม่เติม s",
         why:"She doesn't eat pizza. – eat ไม่เติม s" },
-      { s:"We {0} happy.", th:"ลากคำปฏิเสธ Verb to be ไปเติม",
+      { s:"We {0} happy.", task:"ลากคำปฏิเสธ Verb to be ไปเติม",
         answers:["aren't"], bank:["aren't","isn't","don't","doesn't"],
-        hint:"We → are not (aren't)",
+        hint:"We เป็นพหูพจน์ และ happy เป็นคุณศัพท์ ให้ใช้ Verb to be: are not",
         why:"We aren't happy. – happy เป็นคุณศัพท์ ใช้ Verb to be ไม่ใช้ don't" },
-      { s:"I {0} {1} nuts.", th:"ลากคำไปเติม 2 ช่อง",
+      { s:"I {0} {1} nuts.", task:"ลากคำไปเติม 2 ช่อง",
         answers:["don't","eat"], bank:["don't","doesn't","eat","eats"],
-        hint:"I → don't",
+        hint:"I ใช้คู่กับ don't แล้วตามด้วยกริยารูปเดิม",
         why:"I don't eat nuts. – I ใช้ don't + V.1" },
-      { s:"It {0} {1} sugar.", th:"ลากคำไปเติม 2 ช่อง",
+      { s:"It {0} {1} sugar.", task:"ลากคำไปเติม 2 ช่อง",
         answers:["doesn't","have"], bank:["doesn't","don't","have","has"],
-        hint:"It → doesn't + have (ไม่ใช่ has)",
+        hint:"It → doesn't และกริยา has ต้องกลับเป็นรูปเดิม!",
         why:"It doesn't have sugar. – หลัง doesn't ใช้ have ไม่ใช่ has" }
     ]
   }
 ];
 
 /* =====================================================================
-   3) ระบบเสียง (สร้างเสียงเพลง/เอฟเฟกต์ด้วย WebAudio ไม่ต้องมีไฟล์เสียง)
+   3) ระบบเสียง (เพลง/เอฟเฟกต์สร้างด้วย WebAudio ไม่ต้องมีไฟล์เสียง)
    ===================================================================== */
-const TRACKS = [ // เพลงของแต่ละด่าน: bpm, melody(16 ช่อง), bass(16 ช่อง)  ตัวเลข = semitone, null = เว้น
+const TRACKS = [ // one song per level: bpm, melody (16 steps), bass (16 steps)   numbers = semitones, null = rest
   { bpm:112, wave:'triangle',
     mel:[0,null,4,null,7,null,4,null,9,null,7,null,4,2,0,null],
     bass:[0,null,0,null,-5,null,-5,null,-3,null,-3,null,-5,null,-5,null] },
@@ -405,10 +439,10 @@ const Sound = (() => {
   let musicOn = true;
   const f = m => 440 * Math.pow(2, (m - 69) / 12);
 
-  function init() {                       // สร้าง AudioContext (ต้องหลังผู้ใช้กดปุ่ม)
+  function init() {                       // create the AudioContext (must happen after a click/tap)
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
-      ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.7; master.connect(ctx.destination);
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
       noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
       const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     }
@@ -429,12 +463,12 @@ const Sound = (() => {
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     s.connect(fl); fl.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
   }
-  function scheduler() {                  // ตั้งเวลาเล่นโน้ตล่วงหน้าเล็กน้อย
+  function scheduler() {                  // schedule notes slightly ahead of time
     while (nextT < ctx.currentTime + 0.2) {
       const m = track.mel[step], b = track.bass[step];
-      if (m !== null) tone(f(60 + m), nextT, 0.22, track.wave, 0.05);
-      if (b !== null) tone(f(48 + b), nextT, 0.28, 'triangle', 0.09);
-      if (step % 2 === 0) noise(nextT, 0.04, 0.05);
+      if (m !== null) tone(f(60 + m), nextT, 0.22, track.wave, 0.04);
+      if (b !== null) tone(f(48 + b), nextT, 0.28, 'triangle', 0.08);
+      if (step % 2 === 0) noise(nextT, 0.04, 0.04);
       nextT += 60 / track.bpm / 4; step = (step + 1) % 16;
     }
   }
@@ -449,9 +483,13 @@ const Sound = (() => {
     if (musicOn) { if (current >= 0) play(current); } else stop();
     return musicOn;
   }
+  // Sound effects. The correct / wrong sounds are louder than the music so kids always hear them.
   const sfx = {
-    ding(){ if(!init())return; const t=ctx.currentTime; tone(784,t,.15,'sine',.16); tone(1175,t+.1,.3,'sine',.16); },
-    oops(){ if(!init())return; const t=ctx.currentTime; tone(330,t,.25,'sine',.14,220); },
+    ding(){ if(!init())return; const t=ctx.currentTime;                       // ✅ happy "ta-da-da-DING!"
+            [523,659,784,1047].forEach((n,i)=>tone(n,t+i*.08,.28,'triangle',.22));
+            tone(1568,t+.34,.45,'sine',.18); },
+    oops(){ if(!init())return; const t=ctx.currentTime;                       // ❌ soft "wom-womp" (not scary)
+            tone(392,t,.22,'sine',.25,330); tone(311,t+.22,.4,'sine',.25,220); },
     tick(){ if(!init())return; tone(1100,ctx.currentTime,.07,'square',.09); },
     boom(){ if(!init())return; const t=ctx.currentTime; noise(t,.7,.5,0,500); tone(120,t,.6,'sine',.35,40); },
     win(){ if(!init())return; const t=ctx.currentTime; [523,659,784,1047,784,1047,1319].forEach((n,i)=>tone(n,t+i*.12,.25,'triangle',.14)); }
@@ -459,7 +497,7 @@ const Sound = (() => {
   return { play, stop, toggle, sfx, init };
 })();
 
-/* อ่านประโยคออกเสียง (Text-to-Speech ของเบราว์เซอร์) */
+/* Read a sentence aloud (the browser's Text-to-Speech) */
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
@@ -474,15 +512,17 @@ function speak(text) {
 const $ = (s, r = document) => r.querySelector(s);
 const screen = $('#screen');
 const S = { name:'', char:CHARACTERS[0], level:0, q:0, coins:0, attempts:0, locked:true,
-            stats:[], missed:[], marks:[], tid:null, deadline:0, lastSec:null };
+            stats:[], missed:[], marks:[], tid:null, deadline:0, lastSec:null, reveal:null };
 
-// ประโยคเต็มที่ถูกต้อง (ใช้โชว์หลังตอบ)
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+// the full correct sentence (shown after answering)
 function fullOf(L, q) {
   if (L.type === 'choice') return q.full || q.prompt.replace('___', q.choices[q.answer]);
   if (L.type === 'type')   return q.s.replace('___', q.answers[0]);
   return q.s.replace(/\{(\d)\}/g, (m, i) => q.answers[i]);
 }
-// ข้อความที่ให้ปุ่ม 🔊 อ่านตอนทำโจทย์
+// text read by the 🔊 button while answering
 function sayOf(L, q) {
   if (L.type === 'choice') return q.say || q.prompt.replace('___', 'blank');
   if (L.type === 'type')   return q.s.replace('___', 'blank');
@@ -491,10 +531,65 @@ function sayOf(L, q) {
 const norm = t => t.toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const totalQ = () => LEVELS.reduce((n, L) => n + L.questions.length, 0);
-function setName(el, name) { el.textContent = name; }
 
 /* =====================================================================
-   5) หน้าจอ: เริ่มเกม (เลือกตัวละคร + ใส่ชื่อ)
+   5) ตารางลำดับคะแนน (LEADERBOARD)
+      - เก็บในเครื่องเสมอ (localStorage)
+      - ถ้าตั้ง CONFIG.backendUrl จะส่งคะแนนขึ้น Google Sheet ด้วย และตารางจะแสดงคะแนนของทั้งห้อง
+        ถ้าเน็ต/หลังบ้านใช้ไม่ได้ เกมจะกลับไปใช้คะแนนในเครื่องเองอย่างเงียบๆ
+   ===================================================================== */
+const boardState = { remote: null };      // latest scores downloaded from the Google Sheet (or null)
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(CONFIG.storageKey)) || []; } catch (e) { return []; }
+}
+function saveScores(list) {
+  try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(list)); } catch (e) {}
+}
+const sortScores = list => list.slice().sort((a, b) => b.coins - a.coins || a.id - b.id);
+
+// save the finished game on this device, return the new entry
+function recordScore() {
+  const entry = { id: Date.now(), name: S.name, emoji: S.char.emoji, coins: S.coins };
+  const list = loadScores(); list.push(entry); saveScores(list);
+  return entry;
+}
+// send one score to the Google Sheet (fire and forget; no-cors + text/plain avoids browser preflight problems)
+async function sendRemote(entry) {
+  if (!CONFIG.backendUrl) return;
+  try {
+    await fetch(CONFIG.backendUrl, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(entry) });
+  } catch (e) {}
+}
+// download all scores from the Google Sheet (returns an array, or null if not available)
+async function fetchRemote() {
+  if (!CONFIG.backendUrl) return null;
+  try {
+    const r = await fetch(CONFIG.backendUrl + (CONFIG.backendUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+    const d = await r.json();
+    return Array.isArray(d.scores) ? d.scores : null;
+  } catch (e) { return null; }
+}
+const currentList = () => boardState.remote || loadScores();
+function rankInfo(id, list) {
+  const sorted = sortScores(list);
+  return { rank: sorted.findIndex(e => e.id === id) + 1, total: sorted.length };
+}
+// HTML of the leaderboard card. highlightId = the entry to highlight as "you"
+function boardHTML(highlightId) {
+  const list = currentList(), shared = !!boardState.remote;
+  const sorted = sortScores(list), medals = ['🥇', '🥈', '🥉'];
+  const row = (e, i) => `<li class="${e.id === highlightId ? 'me' : ''}"><span class="rk">${medals[i] || (i + 1)}</span>
+      <span class="bn">${esc(e.emoji || '')} ${esc(e.name)}${e.id === highlightId ? ' (เธอ!)' : ''}</span><span class="bs">⭐ ${esc(e.coins)}</span></li>`;
+  let rows = sorted.slice(0, CONFIG.boardSize).map(row).join('');
+  const myIdx = sorted.findIndex(e => e.id === highlightId);
+  if (myIdx >= CONFIG.boardSize) rows += `<li style="justify-content:center;box-shadow:none;background:none">⋮</li>` + row(sorted[myIdx], myIdx);
+  return `<div class="board"><h3>🏆 หอเกียรติยศ</h3>
+    ${sorted.length ? `<ol>${rows}</ol>` : '<div class="empty">ยังไม่มีคะแนน มาเป็นดาวดวงแรกกันเถอะ! ⭐</div>'}
+    <div class="note">${shared ? '🌐 คะแนนของทั้งห้อง' : 'คะแนนบันทึกในเครื่องนี้'} • ทุกคนคือดาว ลองทำลายสถิติของตัวเองดูนะ! 💪</div></div>`;
+}
+
+/* =====================================================================
+   6) หน้าจอ: เริ่มเกม (เลือกตัวละคร + ใส่ชื่อ)
    ===================================================================== */
 function showStart() {
   stopTimer(); document.body.classList.remove('danger-on');
@@ -508,9 +603,12 @@ function showStart() {
         ${CHARACTERS.map(c => `<div class="char ${c.id === S.char.id ? 'sel' : ''}" data-id="${c.id}"><span class="em">${c.emoji}</span><b>${c.name}</b></div>`).join('')}
       </div>
       <b>2) ใส่ชื่อของเธอ</b><br><br>
-      <input class="name-in" id="nameIn" maxlength="12" placeholder="พิมพ์ชื่อเล่น..." autocomplete="off" value="">
-      <p class="sub" style="margin-top:14px">🎵 มีเพลง • 🔊 กดฟังประโยคได้ • 💣 ข้อละ ${CONFIG.seconds} วินาที (ไม่ต้องกลัว ลองใหม่ได้!)</p>
-      <button class="btn3d big orange" id="goBtn">เริ่มเกม ▶</button>
+      <input class="name-in" id="nameIn" maxlength="12" placeholder="พิมพ์ชื่อเล่น..." autocomplete="off">
+      <p class="sub" style="margin-top:14px">🎵 มีเพลง • 🔊 ฟังประโยคได้ • 💡 มีคำใบ้ • 💣 ข้อละ ${CONFIG.seconds} วินาที (ไม่ต้องกลัว ลองใหม่ได้!)</p>
+      <div class="actions">
+        <button class="btn3d big orange" id="goBtn">เริ่มเกม ▶</button>
+        <button class="btn3d big alt" id="boardBtn">🏆 ลำดับคะแนน</button>
+      </div>
     </div>`;
   $('#nameIn').value = S.name;
   $('#chars').onclick = e => {
@@ -526,10 +624,33 @@ function showStart() {
     S.level = 0; S.coins = 0; S.stats = []; S.missed = [];
     showIntro();
   };
+  $('#boardBtn').onclick = () => { S.name = $('#nameIn').value.trim(); showBoard(); };
+}
+
+/* SCREEN: leaderboard only */
+function showBoard() {
+  screen.innerHTML = `<div class="card">
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">🏆 ลำดับคะแนน</h2>
+      <div id="boardBox">${boardHTML(null)}</div>
+      <div class="actions">
+        <button class="btn3d" id="backBtn">⬅ กลับ</button>
+        ${CONFIG.backendUrl ? '' : '<button class="btn3d small pink" id="clearBtn">ล้างคะแนน (สำหรับครู)</button>'}
+      </div></div>`;
+  $('#backBtn').onclick = showStart;
+  const cb = $('#clearBtn');
+  if (cb) cb.onclick = () => { if (confirm('ลบคะแนนทั้งหมดที่บันทึกในเครื่องนี้?')) { saveScores([]); showBoard(); } };
+  if (CONFIG.backendUrl) {                                   // load the shared class scores
+    $('#boardBox').innerHTML = '<div class="board"><div class="empty">กำลังโหลดคะแนนของทั้งห้อง… ⏳</div></div>';
+    fetchRemote().then(list => {
+      if (!$('#boardBox')) return;
+      boardState.remote = list;
+      $('#boardBox').innerHTML = boardHTML(null);
+    });
+  }
 }
 
 /* =====================================================================
-   6) หน้าแนะนำด่าน
+   7) หน้าแนะนำด่าน
    ===================================================================== */
 function showIntro() {
   const L = LEVELS[S.level];
@@ -541,20 +662,19 @@ function showIntro() {
       <p class="sub" id="introName"></p>
       <p class="sub">${L.story}</p>
       <div class="rule">${L.rule.map(r => `<div>✨ ${r}</div>`).join('')}</div>
-      <p class="sub">${L.questions.length} ข้อ • ข้อละ ${CONFIG.seconds} วินาที • ตอบผิดครั้งแรกยังลองใหม่ได้ 😊</p>
+      <p class="sub">${L.questions.length} ข้อ • ข้อละ ${CONFIG.seconds} วินาที • กด 💡 คำใบ้ได้ • ตอบผิดครั้งแรกยังลองใหม่ได้ 😊</p>
       <button class="btn3d big" id="playBtn">พร้อมแล้ว! ลุยเลย 🚀</button>
     </div>`;
-  setName($('#introName'), `${S.char.emoji} ${S.name}`);
+  $('#introName').textContent = `${S.char.emoji} ${S.name}`;
   S.stats[S.level] = { first:0, second:0, miss:0 };
   S.marks = [];
   $('#playBtn').onclick = () => { S.q = 0; buildGame(); startQuestion(); };
 }
 
 /* =====================================================================
-   7) โครงหน้าเล่นเกม + HUD
+   8) โครงหน้าเล่นเกม + HUD
    ===================================================================== */
 function buildGame() {
-  const L = LEVELS[S.level];
   screen.innerHTML = `
     <div id="game">
       <div class="hud">
@@ -566,7 +686,7 @@ function buildGame() {
       <div class="timer"><span class="secs" id="secs"></span><div class="fill" id="fill"></div><div id="bomb">💣</div></div>
       <div class="tabwrap"><div id="count"></div><div class="tablet" id="tablet"></div></div>
     </div>`;
-  setName($('#hudName'), S.name);
+  $('#hudName').textContent = S.name;
 }
 function updateHud() {
   const L = LEVELS[S.level];
@@ -577,7 +697,7 @@ function updateHud() {
 }
 
 /* =====================================================================
-   8) ตัวจับเวลา + ระเบิด
+   9) ตัวจับเวลา + ระเบิด
    ===================================================================== */
 function startTimer() {
   stopTimer();
@@ -594,42 +714,53 @@ function tick() {
   const sec = Math.ceil(left / 1000);
   if (sec !== S.lastSec) {
     S.lastSec = sec; $('#secs').textContent = '⏱ ' + sec;
-    if (sec <= CONFIG.warnAt && sec > 0) {         // เตือนช่วงท้าย
+    if (sec <= CONFIG.warnAt && sec > 0) {         // warning in the last seconds
       $('#game').classList.add('danger'); document.body.classList.add('danger-on');
       $('#count').textContent = sec; Sound.sfx.tick();
     }
   }
   if (left <= 0) timeUp();
 }
-function timeUp() {                                  // 💥 หมดเวลา: ระเบิดแบบการ์ตูน แล้วเฉลยอย่างอ่อนโยน
+function timeUp() {                                  // 💥 time's up: a cartoon boom, then a gentle answer reveal
   if (S.locked) return;
   stopTimer(); Sound.sfx.boom();
   const b = document.createElement('div'); b.className = 'boom'; b.textContent = '💥'; document.body.appendChild(b);
   setTimeout(() => b.remove(), 950);
+  if (S.reveal) S.reveal();
   finishQuestion('timeout');
 }
 function clearDanger() { const g = $('#game'); if (g) g.classList.remove('danger'); document.body.classList.remove('danger-on'); }
 
 /* =====================================================================
-   9) เริ่มข้อ / ตัวเรนเดอร์ของแต่ละประเภทโจทย์
+   10) เริ่มข้อ / ตัวเรนเดอร์ของโจทย์แต่ละประเภท
    ===================================================================== */
 function startQuestion() {
   const L = LEVELS[S.level], q = L.questions[S.q];
-  S.attempts = 0; S.locked = false; clearDanger(); updateHud();
+  S.attempts = 0; S.locked = false; S.reveal = null; clearDanger(); updateHud();
   const tab = $('#tablet');
   tab.innerHTML = `<span class="tag">${L.icon} Order #${S.q + 1}</span>
-    ${'speechSynthesis' in window ? '<button class="btn3d alt speak" id="spk">🔊 ฟัง</button>' : ''}
-    <div id="qbody"></div><div class="msg" id="msg"></div><div id="fbBox"></div>`;
+    <div class="tools">
+      <button class="btn3d yellow small" id="hintBtn">💡 คำใบ้</button>
+      ${'speechSynthesis' in window ? '<button class="btn3d alt small" id="spk">🔊 ฟัง</button>' : ''}
+    </div>
+    <div id="qbody"></div>
+    <div class="hintbox" id="hintBox"></div>
+    <div class="msg" id="msg"></div><div id="fbBox"></div>`;
+  $('#hintBtn').onclick = () => { const h = $('#hintBox'); h.textContent = '💡 ' + (q.hint || 'ดูประธานของประโยคก่อนนะ!'); h.classList.add('show'); };
   const spk = $('#spk'); if (spk) spk.onclick = () => speak(sayOf(L, q));
   ({ choice: renderChoice, type: renderType, drag: renderDrag })[L.type](q, L);
   startTimer();
 }
+function showHint(q) {                              // shown automatically after a wrong answer
+  const h = $('#hintBox'); h.textContent = '💡 ' + (q.hint || 'ดูประธานของประโยคก่อนนะ!'); h.classList.add('show');
+}
 
-/* ---- ด่าน 1: คลิกเลือก ---- */
-function renderChoice(q, L) {
+/* ---- Level 1: click the answer ---- */
+function renderChoice(q) {
   const html = q.prompt.replace('___', '<span class="blank">&nbsp;</span>');
-  $('#qbody').innerHTML = `<p class="prompt">${html}</p><p class="thai">${q.th || ''}</p>
+  $('#qbody').innerHTML = `<p class="prompt">${html}</p><p class="task">${q.task || ''}</p>
     <div class="choices">${q.choices.map((c, i) => `<button class="choice" data-i="${i}">${c}</button>`).join('')}</div>`;
+  S.reveal = () => document.querySelectorAll('.choice')[q.answer].classList.add('right');
   $('#qbody').onclick = e => {
     const btn = e.target.closest('.choice'); if (!btn || S.locked || btn.classList.contains('wrong')) return;
     if (+btn.dataset.i === q.answer) {
@@ -637,21 +768,20 @@ function renderChoice(q, L) {
       finishQuestion(S.attempts === 0 ? 'first' : 'second');
     } else {
       btn.classList.add('wrong'); Sound.sfx.oops(); S.attempts++;
-      if (S.attempts >= 2) {
-        document.querySelectorAll('.choice')[q.answer].classList.add('right');
-        finishQuestion('fail');
-      } else $('#msg').textContent = '🙂 ใกล้แล้ว! ลองเลือกอีกครั้งนะ';
+      if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); }
+      else { $('#msg').textContent = '🙂 ใกล้แล้ว! ลองอีกครั้งนะ'; showHint(q); }
     }
   };
 }
 
-/* ---- ด่าน 2: พิมพ์คำสั้นๆ ---- */
-function renderType(q, L) {
+/* ---- Level 2: type a short answer ---- */
+function renderType(q) {
   const [a, b] = q.s.split('___');
   $('#qbody').innerHTML = `<p class="prompt">${a}<input class="blank-input" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="14">${b}</p>
-    <p class="thai">${q.th || ''}</p>
+    <p class="task">${q.task || ''}</p>
     <div class="actions"><button class="btn3d" id="chk">ตรวจคำตอบ ✔</button></div>`;
   const inp = $('#ans'); setTimeout(() => inp.focus({ preventScroll: true }), 50);
+  S.reveal = () => { inp.value = q.answers[0]; inp.classList.add('ok'); inp.disabled = true; };
   const check = () => {
     if (S.locked) return;
     const v = norm(inp.value); if (!v) { $('#msg').textContent = '✏️ พิมพ์คำตอบก่อนนะ'; return; }
@@ -661,21 +791,20 @@ function renderType(q, L) {
     } else {
       Sound.sfx.oops(); S.attempts++;
       inp.classList.remove('bad'); void inp.offsetWidth; inp.classList.add('bad');
-      if (S.attempts >= 2) { inp.value = q.answers[0]; inp.classList.add('ok'); inp.disabled = true; finishQuestion('fail'); }
-      else { $('#msg').textContent = '💡 คำใบ้: ' + (q.hint || 'ลองดูประธานอีกครั้งนะ'); inp.select(); }
+      if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); }
+      else { $('#msg').textContent = '🙂 ใกล้แล้ว! ลองอีกครั้งนะ'; showHint(q); inp.select(); }
     }
   };
   $('#chk').onclick = check;
   inp.onkeydown = e => { if (e.key === 'Enter') check(); };
 }
 
-/* ---- ด่าน 3: ลากคำไปเติม (รองรับเมาส์และสัมผัส + แตะคำเพื่อเติมอัตโนมัติ) ---- */
-function renderDrag(q, L) {
-  const placed = q.answers.map(() => null);      // placed[ช่อง] = index ของ chip ใน bank
-  const locked = q.answers.map(() => false);     // ช่องที่ตอบถูกแล้ว (ล็อกไว้)
-  let slotNo = 0;
+/* ---- Level 3: drag words into blanks (mouse + touch; tapping a word fills the next empty blank) ---- */
+function renderDrag(q) {
+  const placed = q.answers.map(() => null);      // placed[blank] = index of the chip in q.bank
+  const locked = q.answers.map(() => false);     // blanks that are already correct (locked)
   const sentence = q.s.replace(/\{(\d)\}/g, (m, i) => `<span class="slot" data-i="${i}">&nbsp;</span>`);
-  $('#qbody').innerHTML = `<p class="prompt">${sentence}</p><p class="thai">${q.th || ''}</p>
+  $('#qbody').innerHTML = `<p class="prompt">${sentence}</p><p class="task">${q.task || ''}</p>
     <div class="bank" id="bank">${q.bank.map((w, i) => `<div class="chip" data-b="${i}">${w}</div>`).join('')}</div>
     <div class="actions"><button class="btn3d" id="chk">ตรวจคำตอบ ✔</button></div>`;
   const slots = [...document.querySelectorAll('.slot')], chips = [...document.querySelectorAll('.chip')];
@@ -695,6 +824,10 @@ function renderDrag(q, L) {
   function putFirstEmpty(b) {
     const i = placed.findIndex((p, k) => p === null && !locked[k]); if (i >= 0) put(i, b);
   }
+  S.reveal = () => {                                // fill in the correct words
+    q.answers.forEach((a, i) => { placed[i] = q.bank.findIndex((w, k) => w === a && !placed.some((p, j) => p === k && j !== i)); locked[i] = true; });
+    refresh(); slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
+  };
   slots.forEach((s, i) => s.onclick = () => { if (!locked[i] && !S.locked && placed[i] !== null) { placed[i] = null; refresh(); } });
 
   chips.forEach(ch => {
@@ -715,10 +848,10 @@ function renderDrag(q, L) {
       const up = ev => {
         ch.removeEventListener('pointermove', move); ch.removeEventListener('pointerup', up); ch.removeEventListener('pointercancel', up);
         if (ghost) ghost.remove(); ch.classList.remove('dragging'); slots.forEach(s => s.classList.remove('hot'));
-        if (!moved) putFirstEmpty(b);                            // แตะเฉยๆ = เติมช่องว่างแรก
+        if (!moved) putFirstEmpty(b);                            // a simple tap = fill the first empty blank
         else {
           const el = document.elementFromPoint(ev.clientX, ev.clientY), s = el && el.closest('.slot');
-          if (s) { const i = +s.dataset.i; if (placed[i] !== null && !locked[i]) {} put(i, b); }
+          if (s) put(+s.dataset.i, b);
         }
       };
       ch.addEventListener('pointermove', move); ch.addEventListener('pointerup', up); ch.addEventListener('pointercancel', up);
@@ -735,14 +868,10 @@ function renderDrag(q, L) {
       return;
     }
     Sound.sfx.oops(); S.attempts++;
-    if (S.attempts >= 2) {                                   // เฉลย: เติมคำที่ถูกทั้งหมด
-      q.answers.forEach((a, i) => { placed[i] = q.bank.findIndex((w, k) => w === a && !placed.some((p, j) => p === k && j !== i)); locked[i] = true; });
-      refresh(); slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
-      finishQuestion('fail'); return;
-    }
+    if (S.attempts >= 2) { S.reveal(); finishQuestion('fail'); return; }
     wrong.forEach((w, i) => { if (w) slots[i].classList.add('bad'); else { locked[i] = true; slots[i].classList.add('ok'); } });
-    $('#msg').textContent = '💡 คำใบ้: ' + (q.hint || 'ลองดูประธานอีกครั้งนะ');
-    setTimeout(() => {                                       // ช่องที่ผิดเด้งกลับ ช่องที่ถูกค้างไว้
+    $('#msg').textContent = '🙂 ใกล้แล้ว! คำสีเขียวถูกแล้ว แก้เฉพาะคำสีแดงนะ'; showHint(q);
+    setTimeout(() => {                                       // wrong words bounce back, correct ones stay
       wrong.forEach((w, i) => { if (w) { placed[i] = null; slots[i].classList.remove('bad'); } });
       refresh();
     }, 900);
@@ -750,7 +879,7 @@ function renderDrag(q, L) {
 }
 
 /* =====================================================================
-   10) จบข้อ: ให้คะแนน + แสดงเฉลยแบบอ่อนโยน
+   11) จบข้อ: ให้คะแนน + เฉลยแบบอ่อนโยน
    ===================================================================== */
 function finishQuestion(result) {
   if (S.locked) return;
@@ -763,6 +892,7 @@ function finishQuestion(result) {
     st.miss++; S.marks[S.q] = 'miss'; cls = 'soft';
     title = result === 'timeout' ? '💥 บึ้ม! หมดเวลา ไม่เป็นไรนะ มาดูคำตอบด้วยกัน' : '🙂 ใกล้แล้ว! มาดูคำตอบด้วยกัน';
     S.missed.push({ full: fullOf(L, q), why: q.why });
+    if (result === 'timeout') setTimeout(() => Sound.sfx.oops(), 500);
   }
   S.coins += pts; $('#coins').textContent = S.coins; updateHud();
   const last = S.q === L.questions.length - 1;
@@ -778,9 +908,8 @@ function finishQuestion(result) {
         <button class="btn3d orange" id="nextBtn">${last ? 'จบด่าน ➜' : 'ข้อต่อไป ➜'}</button>
       </div></div>`;
   const sf = $('#sayFull'); if (sf) sf.onclick = () => speak(full.replace(/\(.*?\)/g, ''));
-  $('#nextBtn').onclick = () => { speechSynthesis && speechSynthesis.cancel && speechSynthesis.cancel(); nextQuestion(); };
+  $('#nextBtn').onclick = () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); nextQuestion(); };
   box.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  const ch = document.querySelector('.chips'); // (เผื่อขยายภายหลัง)
 }
 function nextQuestion() {
   const L = LEVELS[S.level];
@@ -789,9 +918,9 @@ function nextQuestion() {
 }
 
 /* =====================================================================
-   11) สรุปด่าน / สรุปเกม (ไม่มีอันดับ ไม่มี Game Over – ชมเชยทุกคน)
+   12) สรุปด่าน / สรุปเกม (พร้อมอันดับ)
    ===================================================================== */
-function starsFor(pct) { return pct >= 0.75 ? 3 : pct >= 0.45 ? 2 : 1; }   // อย่างน้อย 1 ดาวเสมอ
+function starsFor(pct) { return pct >= 0.75 ? 3 : pct >= 0.45 ? 2 : 1; }   // always at least 1 star
 function showLevelDone() {
   const L = LEVELS[S.level], st = S.stats[S.level], n = L.questions.length;
   const pct = (st.first * CONFIG.pointsFirst + st.second * CONFIG.pointsSecond) / (n * CONFIG.pointsFirst);
@@ -799,7 +928,7 @@ function showLevelDone() {
   Sound.sfx.win(); confetti(18);
   screen.innerHTML = `<div class="card">
       <div class="avatar3d">${S.char.emoji}</div>
-      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">ผ่าน${L.title.split(':')[0]}แล้ว! 🎉</h2>
+      <h2 class="title" style="font-size:clamp(24px,5vw,38px)">ผ่านด่าน ${S.level + 1} แล้ว! 🎉</h2>
       <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
       <div class="stats">
         <div class="stat">✅ ถูกทันที ${st.first}</div>
@@ -814,6 +943,9 @@ function showLevelDone() {
 function showFinal() {
   const maxPts = totalQ() * CONFIG.pointsFirst, pct = S.coins / maxPts, stars = starsFor(pct);
   const msg = pct >= 0.75 ? 'สุดยอดนักช้อปไวยากรณ์! 🏆' : pct >= 0.45 ? 'ทำได้ดีมาก! อีกนิดเดียวก็เป๊ะแล้ว 😄' : 'เก่งมากที่พยายาม! เล่นอีกรอบจะเก่งขึ้นแน่นอน 💪';
+  const entry = recordScore();                                // save on this device
+  boardState.remote = null;
+  const me = rankInfo(entry.id, loadScores());
   Sound.sfx.win(); confetti(40);
   screen.innerHTML = `<div class="card">
       <div class="avatar3d">${S.char.emoji}</div>
@@ -821,17 +953,32 @@ function showFinal() {
       <p class="sub" id="finName"></p>
       <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
       <div class="stats"><div class="stat">⭐ ${S.coins} / ${maxPts}</div></div>
+      <div class="yourrank" id="rankBox">🏅 เธออยู่อันดับที่ ${me.rank} จาก ${me.total} คน</div>
       <p class="sub"><b>${msg}</b></p>
+      <div id="boardBox">${boardHTML(entry.id)}</div>
       ${S.missed.length ? `<b>📖 ทบทวนก่อนกลับบ้านนะ</b><div class="review">${S.missed.map(m => `<div>✅ ${m.full}<br><small>${m.why || ''}</small></div>`).join('')}</div>` : '<p class="sub">🎊 ตอบถูกครบทุกข้อเลย!</p>'}
       <div class="actions">
         <button class="btn3d big" id="again">เล่นอีกครั้ง 🔁</button>
         <button class="btn3d big pink" id="home">เปลี่ยนตัวละคร 🏠</button>
       </div></div>`;
-  setName($('#finName'), `${S.char.emoji} ${S.name}`);
+  $('#finName').textContent = `${S.char.emoji} ${S.name}`;
   $('#again').onclick = () => { S.level = 0; S.coins = 0; S.stats = []; S.missed = []; showIntro(); };
   $('#home').onclick = () => { Sound.stop(); showStart(); };
+  if (CONFIG.backendUrl) {                                    // send to the class Google Sheet, then show the class board
+    $('#boardBox').innerHTML = '<div class="board"><div class="empty">กำลังส่งคะแนนของเธอ… ⏳</div></div>';
+    sendRemote(entry).then(fetchRemote).then(list => {
+      if (!$('#boardBox')) return;
+      if (list) {
+        if (!list.some(e => e.id === entry.id)) list.push(entry);   // in case the sheet is a moment behind
+        boardState.remote = list;
+        const r = rankInfo(entry.id, list);
+        $('#rankBox').textContent = `🏅 เธออยู่อันดับที่ ${r.rank} จาก ${r.total} คน`;
+      }
+      $('#boardBox').innerHTML = boardHTML(entry.id);
+    });
+  }
 }
-function confetti(n) {                                   // ฝนอีโมจิเฉลิมฉลอง
+function confetti(n) {                                   // emoji rain
   const em = ['🎉', '⭐', '🍎', '🍪', '🧃', '✨', '🥛'];
   for (let i = 0; i < n; i++) {
     const c = document.createElement('div'); c.className = 'confetti'; c.textContent = pick(em);
@@ -842,7 +989,7 @@ function confetti(n) {                                   // ฝนอีโม�
 }
 
 /* =====================================================================
-   12) ปุ่มเปิด/ปิดเพลง + เริ่มเกม
+   13) ปุ่มเปิด/ปิดเพลง + เริ่มเกม
    ===================================================================== */
 $('#musicBtn').onclick = () => { Sound.init(); $('#musicBtn').textContent = Sound.toggle() ? '🎵' : '🔇'; };
 showStart();
